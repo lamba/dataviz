@@ -1,0 +1,762 @@
+﻿Name,Sentiment,Sentiment-x,Challenges
+Ruth Danvers,0.99,99.48,345
+Jessa Manchester,0.99,98.86,313
+Liiz Westminster,0.08,7.72,309
+Mina Lowell,1.00,99.76,300
+Deva Revere,0.93,92.77,290
+Fervi Lawrence Kozy,1.00,99.98,285
+Sid Seekonk,0.99,99.44,285
+Rosey Everett,0.98,98.13,284
+Indi Dracut,-0.63,-62.99,281
+KIR Pembroke,1.00,99.95,281
+Star Portsmouth,0.99,98.61,272
+Foxy Manchester,0.80,79.99,266
+Lola Raynham,1.00,99.53,263
+Mint Lunenburg,0.08,7.72,263
+Jasmine Providence,-0.96,-95.83,254
+Goth Beverly,0.75,74.89,253
+Caden Raymond,-0.97,-97.19,250
+Cory Nicole Caddy,1.00,99.97,250
+Secret Marlboro,0.74,73.56,249
+Gyspy Kozy,,0.00,245
+Valerie Providence,0.99,98.99,244
+Blue Dover,1.00,99.91,242
+Megan Gardner,0.99,98.67,242
+Cheeky Northbridge,1.00,99.70,240
+Chelsea Everett,-0.98,-98.49,240
+Chanel Boylston,0.99,99.02,238
+Coffee Foxboro,0.72,71.80,236
+Twixy Kozy,-0.95,-95.27,236
+Gold Manchester,1.00,99.86,235
+Loving Kingston ,0.99,99.44,235
+Tessa Windsor,1.00,99.88,235
+PrincessDi Kozy,1.00,99.91,233
+Tiffy Manchester,-0.98,-98.00,228
+Cici Haverhill,1.00,99.83,227
+Becky Franklin,0.99,99.41,226
+Awesome Lowell,0.98,98.17,225
+Sparkle Manchester,1.00,99.83,225
+Spank LV,0.99,99.46,221
+Cultured Chelsea,1.00,99.86,219
+East Marlboro,1.00,99.62,218
+Genesis Leominster,1.00,99.76,216
+Petite LV,-0.50,-50.37,214
+Mariah Framingham,-0.69,-68.68,209
+Autumn Nashua,0.99,98.80,207
+Tess Attleboro,-0.91,-90.96,207
+Macarena EB,1.00,99.91,205
+Katarina Scarborough,0.46,45.88,204
+Kitty Pawtucket,0.99,99.43,204
+Pamela Bourne,1.00,99.66,204
+Mafu LV,0.95,95.24,202
+Sarah Embassy,0.95,94.76,202
+Adventurous Waterford,0.99,98.57,201
+Brianne James Baltimore,0.99,98.75,200
+Charlie Venetian,0.98,98.25,200
+Demo Concord,1.00,99.71,200
+Gemma Kozy,0.99,99.40,200
+Next Bridgewater,1.00,99.74,200
+Bootay Lowell,0.99,99.42,199
+Taylor Wethersfield,0.91,90.97,196
+Amy Cranston,0.99,99.40,195
+BbyDevil Portland,1.00,99.62,194
+Robinson Haverhill,,0.00,194
+Lexi Mendon,0.99,98.54,192
+Nala SF,0.97,97.15,191
+Red Indian Warwick,0.99,98.89,189
+Darla Holyoke,1.00,99.96,188
+Abi Lowell,-0.45,-45.45,187
+Peach Dudley,0.98,98.26,187
+Jen Party,1.00,99.95,186
+Madame Randolph,0.99,99.23,186
+Steph Lebanon,-0.87,-86.56,186
+Mal Mattapan,0.30,30.30,183
+Julie Candy Montreal,0.83,82.72,182
+Cali Cole Venetian,1.00,99.76,181
+Fire Manchester,0.75,75.32,181
+Isabeel Douglas,0.99,99.48,181
+Alyssa Pleasant,1.00,99.90,180
+Green Sharon,1.00,99.64,180
+Kristi Sharon,0.96,96.11,180
+Candy Candance Keri Blake,0.14,13.63,179
+Only Fitchburg,0.95,94.88,179
+Mollie Kozy,0.99,99.38,177
+Nessa Woonsocket,0.87,87.12,177
+Bina Brockton,0.96,96.25,176
+Natash Kozy,1.00,99.69,176
+Red Hudson,-0.44,-44.19,176
+Wink Grafton,0.99,99.06,176
+Candy Westminster,1.00,99.96,174
+Jade LV,0.98,98.18,174
+Kirby Milford,1.00,99.62,174
+Puddin Manchester,0.80,80.45,174
+Evie Katy Cantrelle,0.95,94.85,173
+Kristin Stoddard Pine,0.41,41.36,173
+Leigh Seekonk,,0.00,172
+Saenanh Providence,0.98,98.25,172
+Dres Brighton,0.99,98.62,171
+Eli New Britain,0.99,99.31,171
+Heather Belmont,0.87,86.89,171
+Cherry Enfield ,0.95,95.29,170
+Izzy Cranston,-0.20,-20.23,170
+Love LV,0.88,88.20,170
+Sweet Providence,1.00,99.67,170
+Secret LV,0.99,99.17,169
+Sam Brattleboro,0.96,96.36,168
+Gianna Smith,0.94,94.10,167
+Morena La Chula,0.81,80.95,166
+Kat Millie Amber Hathaway,0.99,99.14,165
+Payton Rose,0.99,99.34,165
+Strong Leominster,0.07,7.27,165
+April Providence,0.98,98.45,164
+Kitty Lynn,0.99,99.21,164
+Yellow Springfield,1.00,99.83,164
+Ann Marie Native,0.99,99.04,163
+Sparrow Leander Hilltop,0.21,21.44,163
+Jessica Blue Pine,0.96,95.81,162
+Stella Boylston,0.92,92.27,162
+Hailee Waltham,0.98,98.30,161
+Amber Black,0.72,72.14,160
+Ashley Irish Alpine,1.00,99.66,160
+Desirable Chi,0.98,98.14,160
+Jaylee Springfield,0.96,96.27,159
+Luzz Salem,0.92,92.40,159
+Rachel Kozy,0.44,44.18,158
+Roxy Stewart Windsor,1.00,99.51,158
+Sadie Stella Blue,0.98,98.39,158
+Sol Brighton,1.00,99.70,158
+Amber Lynn Happy,0.99,98.61,157
+Serenity English,1.00,99.84,156
+Anna Burnside,1.00,99.96,154
+BeachBabe Revere,0.94,94.23,154
+Brie Taunton,-0.25,-25.25,154
+Ana Manchester,0.86,85.72,152
+Savannah Marie,1.00,99.86,152
+Noa Venetian,-0.94,-93.54,151
+DJ Kozy,-0.26,-25.61,149
+Luscious Putnam,0.92,91.86,149
+Brandi Holyoke,0.99,99.24,147
+Camilla Lee Sweets,0.84,83.63,147
+Mel Ware,1.00,99.67,146
+Wander Billerica,1.00,99.63,146
+Alice Bethany,-1.00,-99.67,145
+Melissa Steph Lowell Kozy,0.98,98.16,145
+Mya Star Essi,-0.34,-33.84,145
+Cute Kittery,1.00,99.62,144
+Gianna Caroline Aquarius,0.99,99.31,144
+Nikki Log,0.95,95.17,144
+Adriana Holiday,0.99,99.27,141
+Hellena Marlboro,1.00,99.69,141
+Sultry Charlton,-0.99,-99.06,141
+Maddy Hartford,0.96,96.22,139
+Stephi Narragansett,0.99,99.42,139
+Dawn Happy Valley,0.95,94.92,138
+Haylee Floyd,0.96,96.32,138
+Kylie Kiko Nashua Kozy,1.00,99.65,138
+Laura Lake,-0.96,-95.60,138
+Taste Framingham,0.31,31.46,138
+Bomb Cranston,0.99,98.64,137
+Gabbie Kozy,0.99,99.07,137
+Princess Snow,1.00,99.72,137
+Samantha Molly,0.97,96.65,137
+Dazzling Wethersfield,1.00,99.63,136
+Devil Brentwood,1.00,99.87,136
+Raven Dorchester,0.96,95.57,134
+Sake Brighton,0.25,24.58,134
+Sam EB,0.98,98.38,134
+Bunny Baddie Lynn,0.85,84.83,133
+Cutie Delldale,0.99,98.94,133
+Elle Julie Kleciak,1.00,99.71,133
+Fun LV,0.59,59.27,133
+Nina Cassandra,1.00,99.69,133
+Olive Cranston,-0.94,-93.81,133
+Naegleria Phoenix,0.96,96.08,132
+Rachel Foxboro,0.88,87.67,132
+Lexie Rose,1.00,99.84,131
+Disaster Dover,-0.67,-66.72,129
+Duchess Woburn,0.94,93.88,129
+Katie Diamond,0.98,98.10,129
+Lara Hilltop,0.99,99.04,129
+Wild LV,0.61,61.42,129
+Wolf Manchester,0.94,93.99,129
+Anika Revere,0.99,98.76,128
+Lisa Pawt,0.93,93.02,128
+Luscious Seekonk,0.99,99.30,128
+Madness Worcester,0.96,96.23,128
+Emma Rogers,1.00,99.75,127
+Joker Hudson,0.97,97.34,127
+Lily Derry,1.00,99.77,127
+Sassy Lowell,0.89,88.88,127
+Ali Alison Express,1.00,99.82,126
+Jessi Samantha,0.97,96.75,126
+Peggy Lecce,-0.84,-84.29,126
+Shay Manchester Kozy,0.99,98.62,126
+Ivy Medford,,0.00,125
+Jade Hartford,0.97,97.43,125
+Jenny FallRiver,0.00,0.00,124
+Liv Fitch,0.98,98.19,124
+Stacy Webster,0.97,96.56,124
+Hazel Biddeford,0.99,99.27,123
+Jordan Love Everett,0.99,99.30,123
+Mermaid Tyngsboro,-0.90,-90.29,123
+Bunns Baltimore,1.00,99.58,122
+Tuff Worcester,0.58,57.50,122
+KT Marlboro,1.00,99.73,121
+Lina Gardner,-0.91,-90.63,121
+PetiteOne Worcester,0.91,91.12,121
+Cristal Kozy,1.00,99.65,120
+Fish Elliott,1.00,99.50,120
+Klassy Manchester,0.97,96.97,120
+Nuez Chi,-0.93,-93.12,120
+Mariana Framingham,0.99,98.92,119
+Fish Worcester,,0.00,118
+Jules Lynn,0.99,98.52,118
+Mariah Red,-0.09,-9.00,118
+Sara Webster,-0.81,-80.80,118
+Jenni Wolcott,1.00,99.80,117
+Nicole Singapore,0.18,18.17,117
+Lexi Red Log,0.99,99.40,115
+Lynn Manchester,0.97,97.04,115
+Pye Chi,0.95,95.06,115
+Sarah Red,0.99,99.30,115
+Isabella Diamond Branford,0.99,99.32,114
+Jewels Manch,0.97,97.18,114
+Millie Watertown,0.39,39.19,114
+Izabella Bella Star,0.93,93.11,113
+Kasey Clinton,0.98,98.30,113
+Pan Lawerence,1.00,99.71,113
+Sam Manchester,0.99,99.42,113
+Hottie Chi,-0.99,-98.86,112
+LatinBeauty Hartford,1.00,99.79,112
+Tanya Kozy,1.00,99.87,112
+Emma Leominster,0.99,98.57,111
+Lindsey Monica WCM,1.00,99.92,111
+Smiles Marlboro,0.94,94.29,111
+Tori Delicious,1.00,99.82,111
+Ashley Quality,0.96,96.15,110
+Dana Chelsea,0.98,98.48,110
+Julie Fitchburg,1.00,99.76,110
+Topaz SF,-0.08,-8.33,110
+Corix Vernon,-0.69,-69.46,109
+Janice Dwyer,0.99,99.16,109
+Sparkle Quincy,0.98,98.23,109
+Katie Koxx,0.29,29.36,108
+Prudence Framingham,0.96,95.89,108
+Busty Columbia,-0.99,-98.67,107
+Willow Brattleboro,0.99,98.53,107
+Tammi Lynn,1.00,99.77,106
+Alysha Fitch,,0.00,105
+Amateur Worcester,1.00,99.67,105
+Cassandra Weymouth,-0.84,-84.00,105
+Sasha Fierce,0.96,95.78,105
+Faz LV,0.91,90.81,104
+Alexis Methuen,1.00,99.77,103
+Blonde Pornhub,-0.56,-55.58,103
+Carmen Middlesex,1.00,99.80,103
+Luna Revere,,0.00,103
+Misty Kozy,-0.98,-98.25,103
+Paris Passion Monroe,1.00,99.84,103
+Alex Wild Newburyport,0.86,86.05,102
+Juicy Milford,0.97,97.01,102
+Miah Nashua,-0.99,-99.48,102
+Smiles Phoenix,-0.83,-82.94,102
+Social Beverly,0.99,99.23,102
+Bianca New Bedford,1.00,99.65,101
+Brittany Britney Molly Savannah Rose,0.99,99.29,101
+Natasha Riverside,1.00,99.68,101
+Samantha J M Lewis,0.00,0.00,101
+Marissa Eddy,,,100
+Michaela Market Gonzalez,99.91%,,100
+Rachael Bellevue,98.79%,,100
+Vanessa Pawt,99.23%,,100
+Olivia Acton,97.79%,,99
+Bonnie Mirage,98.13%,,98
+Italia Quincy,99.87%,,98
+Jaylee Quality,99.76%,,98
+Raven Newington ,96.81%,,97
+Shy Tyngsboro ,97.32%,,97
+Alexis Douglas,76.20%,,96
+Jewel Econolodge,99.44%,,96
+Ale LV,89.75%,,95
+Allie Winthrop,99.70%,,95
+Ally Sarah,-31.69%,,95
+Laugh Malden,97.93%,,95
+Brunette Dover,99.59%,,94
+Callie Taunton ,98.82%,,94
+Jane Salem,93.80%,,94
+Melissa Fail River,,,94
+Debbie Attleboro,88.31%,,93
+Hanna Gardner,97.40%,,93
+Jesse Windsor,97.53%,,93
+SaySay Beaverton,13.18%,,93
+Bella Smithfield,81.26%,,92
+Jenny Native,99.74%,,92
+Mandy Penn,99.00%,,92
+Mystical Rochester,92.79%,,92
+Diana Springfield,,,91
+Gina Peabody,96.94%,,91
+Hanna Jojo Stacy,99.41%,,91
+Heather Hy,95.64%,,90
+Jen Pawt,,,90
+Hunt Manchester,96.11%,,89
+Bella Palmer,80.50%,,88
+Liv Manchester ,0.00%,,88
+Taylor Sherman,99.41%,,88
+Alex LV,,,87
+Cleo Worcester,99.42%,,87
+Elle Wethersfield,97.96%,,87
+Sarah Marlboro,97.42%,,87
+Summer Franklin,,,87
+Princess Jules,99.80%,,85
+Scarlet Fitch,35.94%,,85
+Seductress Boylston,97.95%,,85
+Southern Revere,-57.15%,,85
+Tammy Malden ,98.99%,,85
+Dancer SF,90.74%,,84
+Sadie Manchester,68.77%,,84
+Tori Alton Diamondz,95.53%,,84
+Babygirl Kozy,,,83
+BunnyLynn Windham,82.51%,,83
+Jessica Torrington (Jenni),82.10%,,83
+Sweet Farm Girl Princeton Leominster Kozy,97.02%,,83
+Clair Jocelyn,87.10%,,82
+Jen Dennis,98.82%,,82
+Cierra Baltimore,99.42%,,81
+Kate Bridgeport,99.20%,,81
+Jordyn Eve,99.88%,,80
+Lauren Sturbridge,99.63%,,80
+Nova Kitten Deerpath,,,80
+Fly Providence,,,79
+Jessiepoo Westboro,89.67%,,79
+Lala Warwick,97.98%,,79
+Red Haverhill,98.85%,,79
+Amber Gardner,,,78
+Dani Carrier,-77.52%,,78
+Rakell Newton,97.34%,,78
+London Skye,,,77
+Private Dancer,98.64%,,76
+Genie Oread,79.33%,,75
+Summer Chicopee,99.77%,,75
+Autumn Kozy,,,74
+Lexi Blaze Stephanie Cleveland,-12.80%,,74
+Berry Dorchester,-93.54%,,73
+Christina Roslindale,,,73
+Hailey Nashua,96.54%,,73
+Strawberri D Vine,98.07%,,73
+Tara Seacoast Dancer,99.64%,,73
+Anna Jess Janeen Mya,96.74%,,72
+Marie Bristol,,,71
+Candy Leah Savanna Hancock,83.60%,,70
+Jessika Hanna ,98.10%,,70
+Korynn LV,87.38%,,70
+Patience Manchester,87.42%,,70
+Ciara Sarah Seekonk,97.22%,,69
+Freya Doyle,99.45%,,69
+Diamond Mirage,95.26%,,68
+Emilee Tirrell Worcester,72.47%,,68
+Mango LV,9.00%,,68
+Tanya Waterbury,87.42%,,68
+Ashlee Dracut Nate,,,67
+Cass Braintree,,,67
+Tiffany Blonde,-97.43%,,67
+Casey Malinda,97.48%,,66
+Christina Holyoke (formerly Alex),99.44%,,66
+Haze Rumfield,-84.59%,,66
+Lolita Methuen,,,66
+Alex Tina Latina Hottie,99.89%,,65
+Jade Brittney,,,65
+Katie Enfield,99.72%,,65
+Marshy Rochester,-96.53%,,65
+Carissa Peterson Quincy,97.00%,,64
+Christy Waterbury,-43.29%,,64
+Kayla Springfield,,,64
+Ruby Methuen,98.22%,,63
+Italian Brandy Manchester Kozy,-86.31%,,62
+Nicole Chelsea,45.88%,,62
+Mabel Bowdoin,-74.12%,,60
+Pixie Braintree,92.00%,,60
+Kahara Manchester,98.12%,,59
+Rosie Woonsocket,95.13%,,59
+Ruby Worcester,-37.89%,,58
+Sara Nashua,99.50%,,58
+Alexa Market,83.33%,,57
+Bella Portland,79.60%,,57
+Meli Dover,98.54%,,57
+Jennie Soco Fruit,-21.73%,,56
+Maggie Bend,99.30%,,56
+Carly Mansfield,,,55
+Juli Prov,98.33%,,55
+Alicia Lovesweet,-98.06%,,52
+Alissa Laconia,97.90%,,50
+Stephanie Quincy,,,50
+Demi Oakland,99.40%,,49
+Devin Seekonk,92.16%,,49
+Eva Arab,90.51%,,49
+Suria Airlie,98.69%,,49
+Ava Malvern,57.19%,,48
+Kylie Manchester,,,47
+Lillith Lowell,0.00%,,47
+SweetNPetite Bellevue,97.81%,,47
+Natalie Brightman,99.32%,,46
+Kendra Raynham,,,45
+Nadia Marie Cranston,99.74%,,45
+Mia Crystal Raynham,95.69%,,43
+Jenna Lowell,-94.23%,,41
+Krystal Queeny Luv Stacy,95.30%,,41
+Summer Peabody,98.99%,,41
+Dest Tirrell Worcester,-77.26%,,39
+Sincere Raquel L Baker,99.70%,,38
+Becca Manchester,95.47%,,37
+Diana Revere,,,36
+Scarlett Worcester,99.78%,,36
+Angel Woburn,-70.63%,,35
+Callie Manchester,,,35
+Chelsea Woburn,,,35
+Eleeze Kaci,86.03%,,35
+Janel Josilyn,-1.56%,,35
+Juliette Rockin Robyn,36.15%,,35
+Kool Mom,-31.82%,,35
+Lou Ann Maxwell Chickey Dee,20.23%,,35
+Meg Attleboro,-82.55%,,35
+Filipina SF,64.23%,,34
+Keri Kole,2.03%,,34
+Marie Manchester,99.38%,,34
+Brenda Strawberry,97.19%,,33
+Jaclynn Newington,,,33
+Jade Dreadlocks,58.57%,,33
+Ali Acton,-93.03%,,32
+Gisellle Woburn,,,32
+Kassidy Elite Chocolate Bunny,71.84%,,32
+Kayla Noel,98.79%,,32
+Lover Charlestown,94.13%,,32
+Tasha Wild,99.82%,,32
+Alexis Caramel Adams,,,31
+Kiki Caddy,90.87%,,31
+Krystal Manchester,95.53%,,31
+Monica Lewinsky,97.04%,,31
+Sarah Librarian,98.80%,,31
+Ava Red,28.15%,,30
+Bria Splash Manchester,92.36%,,30
+Layla Brockton,99.52%,,30
+Lanae Iliana Caddy,99.55%,,29
+Michelle (and Apple),98.70%,,29
+Brandy Acushnet,-11.36%,,28
+Katie Cynthia Kitty KatieCat Springfield,0.00%,,28
+Nicole Palmer,-51.04%,,28
+Alicia Iman Marshall,99.93%,,27
+Nikki Star,99.42%,,27
+Gypsy Holyoke,66.40%,,26
+Rose Daisy,23.82%,,26
+Brooke Wethersfield,0.00%,,25
+Lola Karma Putnam,69.08%,,25
+Natasha Nancy,99.80%,,25
+Natasha Tabitha Smith,99.81%,,25
+Nicole Maple Jess,97.37%,,25
+Angie Brockton,-29.60%,,24
+Annaleigh Windsor,96.65%,,24
+Kathleen Johnson,22.44%,,24
+Sophia Lui,-68.08%,,24
+Bree Everett Camryn,-71.84%,,23
+Christina Arlington,99.90%,,23
+Madison Swiper,-51.06%,,23
+MelSoSweet Kozy,-95.34%,,23
+Tatianna Salem,88.92%,,23
+Heather Braintree,84.66%,,22
+Jess Manchester,83.34%,,22
+Mary Nix,-44.39%,,22
+Mia Park,99.62%,,22
+Aila Super,99.30%,,21
+Deanna Fire,99.94%,,21
+Stacy Hanna,99.31%,,21
+Stacy Pine Nicole Redcay,99.92%,,21
+Empress Lowell,-92.97%,,20
+Janet Clark Chamberlain,77.61%,,20
+Mari Roxbury,,,20
+Summer Prov,39.19%,,20
+Ashley Manchester,99.14%,,19
+Kouk Concord,99.24%,,19
+Lolo Everett,,,19
+Pamela Adriana ,99.88%,,19
+Rachel Manchester,90.22%,,19
+Wine Manchester,,,19
+Adele Westboro,94.32%,,18
+Alexis Bentley,84.40%,,18
+Hershey Kisses Bar Titanium Anna Jones,70.14%,,18
+KaraB Woburn,,,18
+Kathy Leo,41.84%,,18
+Kelly Kash KellyK,99.72%,,18
+Mel Erica Emerald Damzel ,-86.89%,,18
+Mia Ray,-54.87%,,18
+Millie Kozy,97.93%,,18
+Jen Courtney Country Girl Julie,46.82%,,17
+Kaylee Love,91.98%,,17
+Molly Krissy,85.19%,,17
+Tasha Belle Sinclair,0.00%,,17
+Billie Ann Spencer,99.96%,,16
+Brandi Love,-30.71%,,16
+Kim Caddy,96.60%,,16
+Lena Plainville,-21.28%,,16
+Wander Randolph,,,16
+Blue Berwick,,,15
+Lucy Saugus,-29.60%,,15
+Marla Brighton,-65.91%,,15
+Taylor Walt,,,15
+Venz LV,78.99%,,15
+Aubrey Woon,-12.88%,,14
+Brandi April,44.97%,,14
+Cassandra Pope,99.84%,,14
+Eve Bianca,94.41%,,14
+Gi Revere,,,14
+Luscious LV,,,14
+Megan Dove,89.73%,,14
+Nelly Janelle Janelly Stone,16.72%,,14
+Robin Ladi Diamond,-0.18%,,14
+Rocker Chick (Chrissy Haze),98.52%,,14
+Sen Amherst,-38.18%,,14
+Bonnie Joy,0.00%,,13
+Giselle San Diego,-77.98%,,13
+Honey Revere,68.69%,,13
+Kat Katherine,62.89%,,13
+Lexy Aqua,5.16%,,13
+Michelle (Debbie's Referral),99.90%,,13
+Bree Springfield ,,,12
+Joker Kozy,,,12
+Shayla Kayla Stacia,81.17%,,12
+Summer Seekonk,,,12
+Alicia Kissa,99.47%,,11
+Elizabeth Honeypot,-90.58%,,11
+Jocelyn Bria,70.03%,,11
+Lissa Aundria Daye Graves,-83.36%,,11
+Mainely Lowell,,,11
+Seara Springfield,-72.02%,,11
+Tara Angel,54.99%,,11
+Bella and Sabrina,20.23%,,10
+Book Haverhill,,,10
+Bunni Lowell,96.77%,,10
+Charming Chi,,,10
+Christina La Creme Ophylia James,-9.51%,,10
+Core Seekonk,,,10
+Fairy Chi,,,10
+Gem Penny Lane,44.04%,,10
+Gia Gianna Bella Adrianna Alicia Jennifer,-12.80%,,10
+Hailey LV,,,10
+Kayla Newton,9.23%,,10
+Kaylani LV,,,10
+Lanie Caddy,,,10
+Mila LV,,,10
+Model Chi,,,10
+Nikki Lacy,-39.52%,,10
+Tayla Lowell,-85.72%,,10
+Anna Wareham,99.69%,,9
+"Aphro - Stephanie, Maya",99.65%,,9
+Bubblez Brockton,,,9
+Clark Brockton,,,9
+Kati Fitchburg,-22.63%,,9
+Lindsey Nashua,-88.27%,,9
+Native Pitman,,,9
+Ukrainian Manchester,,,9
+Janet West,68.84%,,8
+Kenzie Hathaway,99.86%,,8
+Alyssa Knight,35.09%,,7
+Angel Black,24.14%,,7
+Cassandra Rachel Schroeder,99.02%,,7
+LB LatinBeauty Imlay,,,7
+Madame Hudson,,,7
+Mint Lunenburg TT,,,7
+Mint Markus,,,7
+Amanda Mandy,-80.67%,,6
+April Rayne,-94.36%,,6
+Blue Manchester,,,6
+Christal Berwick,,,6
+Cindy Red,-42.15%,,6
+Cinnamon Spring,,,6
+Cutie Clinton,,,6
+Danielle Walt,40.03%,,6
+Dulce Kozy,,,6
+Emily Hilltop,,,6
+Fish Bobs,,,6
+Gabby Providence,,,6
+Geeta Chang,76.38%,,6
+Jordyn Attleboro,,,6
+Keep Yellow,,,6
+Liiz Seekonk,,,6
+May Rockland,,,6
+Meagan Gray,,,6
+Monique NB,,,6
+Nurse Mansfield,,,6
+Player West Roxbury,,,6
+Portagee Warwick,0.00%,,6
+Rosemary Marlboro,,,6
+Secret Lowell,,,6
+Tia Rose,-53.89%,,6
+Tiffany Northshore,0.00%,,6
+Valentina Maria,0.00%,,6
+Alyonka Beaverton,,,5
+Aries Lynn,,,5
+Blondie Salem,,,5
+Booboo Beaverton,,,5
+Bratty Lowell,,,5
+Brittany Nashua,,,5
+Brownie Lynn,,,5
+Bruna Watertown,,,5
+Caring Saco ,,,5
+Cidalia Cindy Kushner,0.00%,,5
+Cinn SF,,,5
+Cloudy Acton,,,5
+Coco Seaport,,,5
+Dancer Marlboro,,,5
+Destiny Hilltop,,,5
+Elly May,5.16%,,5
+Empress Kozy,,,5
+Ford Foxboro,,,5
+Gifted Malden,,,5
+HotSingleBabe Kozy,,,5
+IslandGirl Everett,,,5
+Ivy Westboro,,,5
+Jazmin Manchester,,,5
+Jia Jianetta,0.00%,,5
+Kali Manchester,,,5
+Khalessi Attleboro,,,5
+Kim Jahytha Caddy,0.00%,,5
+Kitten Nashua,,,5
+Krissy Sammy Gabby,89.78%,,5
+Lala Manchester,96.59%,,5
+Liiz Caddy,,,5
+Lisa Merrimack (Sister Massage),,,5
+Lizz Hilltop,,,5
+Lovely Providence,,,5
+Melissa Knight,-47.84%,,5
+Mermaid Plaistow,,,5
+Molly Manchester,,,5
+Morena Boston,,,5
+Morgan Meriden,,,5
+Nicole Fall,,,5
+Nymph Melrose,,,5
+Orchid Waltham,0.00%,,5
+Petite Haverhill,,,5
+Petite Manchester,,,5
+Pitchy Peachy Jenny,99.26%,,5
+Pretty Braintree,99.52%,,5
+Pretty Seekonk,50.22%,,5
+Rea Saco,,,5
+Reflection Nashua,,,5
+Riri JP,,,5
+Sassy Brockton,,,5
+Shay Seekonk,,,5
+Stacey Samantha Allen Gymnast Latina,92.24%,,5
+Sweet Athol,-83.16%,,5
+Wisefan Jaffrey,,,5
+Zoe Spring,,,5
+Dawn Thomas,-0.73%,,4
+Hope Providence ,,,4
+Jenny McPhail,0.00%,,4
+Shylah Prov,64.86%,,4
+Angie Kendrea Loveless,99.97%,,3
+Barbara Kenney,62.49%,,3
+Indian girl from NY,-21.57%,,3
+Januari Norma Jean NJ,98.59%,,3
+Karen Ferencik,-17.79%,,3
+Laura Diana,-27.32%,,3
+Loveliet Prov,99.62%,,3
+Meah Tinkham,99.61%,,3
+Monroe Taunton,,,3
+Patricia MacGregor,-22.63%,,3
+Pattie Thatcher,0.00%,,3
+Selena Sophia,,,3
+Sophia Haircuts,,,3
+Alice Framingham,,,2
+Athena Providence,,,2
+Bella Allston,-89.89%,,2
+Britney Pleasant,27.56%,,2
+Cheryl (Jimbo's Ex) Clinansmith,17.79%,,2
+Diane BB Montreal,86.12%,,2
+Emma Kaye,-76.59%,,2
+Fantasy Bartlett,,,2
+KIR Kozy,,,2
+Lolita Merrimack,99.59%,,2
+Michaela G,,,2
+Michelle Newbury,99.83%,,2
+Misty Mendon,,,2
+Pam MacGregor,-34.00%,,2
+Patricia Carpenter,0.00%,,2
+Pretti Dymon,0.00%,,2
+Shay Kozy,,,2
+Suzanne Low,-98.14%,,2
+Teresa Manch,99.16%,,2
+Victoria Saco,51.95%,,2
+Adrienne Stella Worcester,,,1
+Alice Kozy,,,1
+Allie,95.84%,,1
+Amber Rose,98.08%,,1
+Amy Amelia Ingram,-43.29%,,1
+Aubrey Krystal,63.42%,,1
+Ava Talia,97.14%,,1
+babes_got_legs NYC,-3.84%,,1
+Belle Warwick,,,1
+Betsy Bee Meng Yen,7.72%,,1
+Bianca President,98.54%,,1
+Bitty Providence,,,1
+Breana Rain,98.89%,,1
+Cali Leo,,,1
+Cat Catherine McDonald,86.31%,,1
+Cindy L Osborn,80.91%,,1
+CJ Springfield,90.98%,,1
+Courtney Roxbury,,,1
+Deseree Worcester,,,1
+Destiny Worcester,,,1
+Diamond Fall River,,,1
+Diane Hortons Windsor,,,1
+Diane Springer,59.94%,,1
+Donna Wyandotte,0.00%,,1
+Foxii Johnston,,,1
+Freak Malden,,,1
+Ginger Prov,,,1
+Girl in Office Main Conf Room,-29.60%,,1
+Giselle Lebanese Windsor,-42.42%,,1
+Glenda Enfield ,,,1
+Goth Marlboro,,,1
+Handy Berlin,,,1
+Jazmine Beaverton,,,1
+Jen Betancourt,64.28%,,1
+Jess Central,-46.98%,,1
+Jess Foxboro,72.13%,,1
+Jess M Adams,-90.01%,,1
+Kasey Lawrence,,,1
+Kathy Eberly,-44.97%,,1
+Kellie Kelli,-15.56%,,1
+Kelsey Amber Barnstead,-35.71%,,1
+Kensy Worc,88.19%,,1
+Kricket Southington,96.51%,,1
+Kristina Shannon McFarland,75.24%,,1
+Lexy Milford,,,1
+Lisa SW,99.51%,,1
+Maeghan,-53.74%,,1
+Make Dorchester,,,1
+Melanie Marco,-90.81%,,1
+Mercedez Columbia,,,1
+Michaela Kozy,,,1
+Mullatto Nashua,,,1
+Nadi Mixed,34.68%,,1
+Natalie Clinton,99.44%,,1
+Natasha Brazil,,,1
+Niketa Parks,94.32%,,1
+Nikki Adderall,12.45%,,1
+Pam Blackstone,,,1
+Peach Manchester,,,1
+Raven Brockton,,,1
+Rockell Depasquale,99.42%,,1
+Rosae Peabody,,,1
+Roxy Jones Bailey,21.41%,,1
+Sandy Prov,98.62%,,1
+Santa Glastonbury,,,1
+Sape Guest House Girl,3.87%,,1
+Sarah Southie,,,1
+Sarita Chowdhury,66.52%,,1
+Saturday Leominster,,,1
+Splash Manchester,,,1
+Summer Lynn,27.95%,,1
+Taylor Tayla,99.63%,,1
+Taylor Warwick,,,1
+Theresa Lowell,,,1
+Toni CadillacCock Dave,78.45%,,1
+Trina Spring,99.76%,,1

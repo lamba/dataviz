@@ -1,0 +1,64 @@
+Company,Department,Product,Region,Quarter,Revenue,Units Sold,Customer Satisfaction,Marketing Spend,Has Premium Support,Profitable,High Growth,Target Met
+TechCorp,Sales,CloudPlatform,North America,Q1,125000,450,4.2,15000,true,true,true,true
+TechCorp,Sales,CloudPlatform,Europe,Q1,98000,320,4.1,12000,true,true,false,false
+TechCorp,Sales,CloudPlatform,Asia,Q1,156000,520,4.5,18000,true,true,true,true
+TechCorp,Marketing,Analytics,North America,Q1,87000,280,3.8,22000,false,true,false,false
+TechCorp,Marketing,Analytics,Europe,Q1,76000,240,3.6,19000,false,false,false,false
+TechCorp,Marketing,Analytics,Asia,Q1,94000,310,4.0,21000,true,true,false,true
+DataFlow,Sales,DataPipeline,North America,Q1,210000,180,4.7,8000,true,true,true,true
+DataFlow,Sales,DataPipeline,Europe,Q1,165000,140,4.3,7000,true,true,false,true
+DataFlow,Sales,DataPipeline,Asia,Q1,189000,160,4.6,8500,true,true,true,true
+DataFlow,Support,DataPipeline,North America,Q1,45000,50,4.1,2000,true,false,false,false
+DataFlow,Support,DataPipeline,Europe,Q1,38000,42,3.9,1800,false,false,false,false
+DataFlow,Support,DataPipeline,Asia,Q1,52000,58,4.3,2200,true,true,false,true
+InnovateLabs,R&D,AIEngine,North America,Q1,340000,85,4.8,25000,true,true,true,true
+InnovateLabs,R&D,AIEngine,Europe,Q1,285000,70,4.6,22000,true,true,false,true
+InnovateLabs,R&D,AIEngine,Asia,Q1,398000,95,4.9,28000,true,true,true,true
+InnovateLabs,Sales,AIEngine,North America,Q1,156000,125,4.4,18000,true,true,true,false
+InnovateLabs,Sales,AIEngine,Europe,Q1,134000,108,4.2,16000,false,true,false,false
+InnovateLabs,Sales,AIEngine,Asia,Q1,178000,142,4.6,19000,true,true,true,true
+CloudTech,Operations,Storage,North America,Q1,67000,890,3.7,5000,false,false,false,false
+CloudTech,Operations,Storage,Europe,Q1,54000,720,3.5,4200,false,false,false,false
+CloudTech,Operations,Storage,Asia,Q1,78000,1050,3.9,5800,true,true,false,true
+CloudTech,Sales,Compute,North America,Q1,145000,200,4.3,12000,true,true,false,true
+CloudTech,Sales,Compute,Europe,Q1,118000,165,4.1,10000,true,false,false,false
+CloudTech,Sales,Compute,Asia,Q1,167000,230,4.5,13500,true,true,true,true
+TechCorp,Sales,CloudPlatform,North America,Q2,142000,510,4.3,16000,true,true,true,true
+TechCorp,Sales,CloudPlatform,Europe,Q2,108000,365,4.2,13000,true,true,false,true
+TechCorp,Sales,CloudPlatform,Asia,Q2,178000,595,4.6,19000,true,true,true,true
+TechCorp,Marketing,Analytics,North America,Q2,95000,315,3.9,23000,false,true,false,true
+TechCorp,Marketing,Analytics,Europe,Q2,84000,275,3.7,20000,false,true,false,false
+TechCorp,Marketing,Analytics,Asia,Q2,105000,345,4.1,22000,true,true,true,true
+DataFlow,Sales,DataPipeline,North America,Q2,235000,205,4.8,9000,true,true,true,true
+DataFlow,Sales,DataPipeline,Europe,Q2,182000,165,4.4,7500,true,true,true,true
+DataFlow,Sales,DataPipeline,Asia,Q2,208000,185,4.7,9200,true,true,true,true
+InnovateLabs,R&D,AIEngine,North America,Q2,375000,95,4.9,27000,true,true,true,true
+InnovateLabs,R&D,AIEngine,Europe,Q2,312000,78,4.7,24000,true,true,true,true
+InnovateLabs,R&D,AIEngine,Asia,Q2,435000,105,5.0,30000,true,true,true,true
+CloudTech,Sales,Compute,North America,Q2,165000,225,4.4,13000,true,true,true,true
+CloudTech,Sales,Compute,Europe,Q2,138000,190,4.3,11000,true,true,false,true
+CloudTech,Sales,Compute,Asia,Q2,192000,265,4.6,14500,true,true,true,true
+TechCorp,Sales,CloudPlatform,North America,Q3,158000,565,4.4,17000,true,true,true,true
+TechCorp,Sales,CloudPlatform,Europe,Q3,125000,425,4.3,14000,true,true,true,true
+TechCorp,Sales,CloudPlatform,Asia,Q3,195000,650,4.7,20000,true,true,true,true
+DataFlow,Sales,DataPipeline,North America,Q3,268000,235,4.9,10000,true,true,true,true
+DataFlow,Sales,DataPipeline,Europe,Q3,205000,185,4.5,8200,true,true,true,true
+DataFlow,Sales,DataPipeline,Asia,Q3,238000,210,4.8,10500,true,true,true,true
+InnovateLabs,R&D,AIEngine,North America,Q3,425000,110,5.0,30000,true,true,true,true
+InnovateLabs,R&D,AIEngine,Europe,Q3,358000,88,4.8,26000,true,true,true,true
+InnovateLabs,R&D,AIEngine,Asia,Q3,485000,125,5.0,32000,true,true,true,true
+CloudTech,Sales,Compute,North America,Q3,189000,255,4.5,14000,true,true,true,true
+CloudTech,Sales,Compute,Europe,Q3,156000,215,4.4,12000,true,true,true,true
+CloudTech,Sales,Compute,Asia,Q3,218000,295,4.7,15500,true,true,true,true
+TechCorp,Sales,CloudPlatform,North America,Q4,172000,615,4.5,18000,true,true,true,true
+TechCorp,Sales,CloudPlatform,Europe,Q4,145000,485,4.4,15000,true,true,true,true
+TechCorp,Sales,CloudPlatform,Asia,Q4,215000,705,4.8,21000,true,true,true,true
+DataFlow,Sales,DataPipeline,North America,Q4,295000,265,5.0,11000,true,true,true,true
+DataFlow,Sales,DataPipeline,Europe,Q4,235000,210,4.6,9000,true,true,true,true
+DataFlow,Sales,DataPipeline,Asia,Q4,268000,240,4.9,11500,true,true,true,true
+InnovateLabs,R&D,AIEngine,North America,Q4,485000,125,5.0,32000,true,true,true,true
+InnovateLabs,R&D,AIEngine,Europe,Q4,408000,98,4.9,28000,true,true,true,true
+InnovateLabs,R&D,AIEngine,Asia,Q4,545000,142,5.0,35000,true,true,true,true
+CloudTech,Sales,Compute,North America,Q4,218000,285,4.6,15000,true,true,true,true
+CloudTech,Sales,Compute,Europe,Q4,182000,245,4.5,13000,true,true,true,true
+CloudTech,Sales,Compute,Asia,Q4,252000,325,4.8,16500,true,true,true,true

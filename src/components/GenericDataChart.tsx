@@ -12,9 +12,13 @@ import {
 } from 'recharts';
 import Papa from 'papaparse';
 
-// Utility function for normalizing column names
+// Utility functions 
 const normalizeColumnName = (column: string): string => {
   return column.replace(/[\s-]/g, '').toLowerCase();
+};
+
+const generateChartKey = (): string => {
+  return `chart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
 // Column statistics interface
@@ -125,6 +129,8 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
 }) => {
   // State variables
 
+  const [chartKey, setChartKey] = useState<string>(generateChartKey());
+
   // Raw data from CSV
   const [rawData, setRawData] = useState<any[]>([]);
   
@@ -192,17 +198,18 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     }
     return value;
   };
+
   const isColumnCategorical = (data: any[], column: string): boolean => {
     if (data.length === 0) return false;
     
-    const values = data.map(row => row[column]).filter(val => val !== undefined && val !== null);
+    const values = data.map(row => row[column]).filter(val => val !== undefined && val !== null && val !== '');
     const uniqueValues = new Set(values);
     
     // Consider categorical if:
     // 1. All values are strings, OR
     // 2. Less than 20 unique values and at least one non-numeric value, OR
     // 3. Unique values are less than 10% of total values (and more than 1)
-    const hasStringValues = values.some(val => typeof val === 'string');
+    const hasStringValues = values.some(val => typeof val === 'string' && val.trim() !== '');
     const uniqueRatio = uniqueValues.size / values.length;
     
     return hasStringValues || 
@@ -306,7 +313,6 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     reader.readAsText(file);
   };
 
-  // Fetch and process data
   useEffect(() => {
     const fetchData = async () => {
       console.log("Data source changed, resetting all state...");
@@ -322,12 +328,12 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       setLoading(true);
       setError(null);
       
-      // Reset config to initial state
+      // Reset config to initial state - CRITICAL: ensure filterValues is empty
       const initialConfig = {
         selectedColumns: defaultYColumns.map(col => normalizeColumnName(col)),
         groupByColumn: null,
-        filterValues: { ...initialFilters },
-        filterConfigs: {},
+        filterValues: {}, // CRITICAL: Start with empty filter values
+        filterConfigs: {}, // CRITICAL: Start with empty filter configs
         chartType: defaultChartType,
         sortBy: defaultYColumns.length > 0 ? normalizeColumnName(defaultYColumns[0]) : 'id',
         displayCount: defaultDisplayCount,
@@ -396,6 +402,11 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     fetchData();
   }, [csvPath, csvData, onDataLoad]);
   
+  // Reset when grouping changes
+  useEffect(() => {
+    setChartKey(generateChartKey());
+  }, [config.groupByColumn]); 
+
   // Update config callback
   useEffect(() => {
     if (onConfigChange) {
@@ -403,10 +414,17 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     }
   }, [config, onConfigChange]);
   
+  const chartTypeKey = config.groupByColumn 
+    ? `${config.chartType}-grouped-by-${config.groupByColumn}`
+    : `${config.chartType}-ungrouped`;
+
   // Process the data
   const processData = (rawData: any[]) => {
+    console.log("processData - starting with raw data:", rawData.length, "rows");
+    
     // Extract all available columns
     const columnsArray = Object.keys(rawData[0] || {});
+    console.log("processData - available columns:", columnsArray);
     setAvailableColumns(columnsArray);
     
     // Determine default x-axis column if not provided
@@ -426,14 +444,30 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
           if (normalizedCol === effectiveXAxis) return false;
           
           // Check if column contains numeric OR boolean values
-          return rawData.some(row => {
+          const hasNumericData = rawData.some(row => {
             const val = row[col];
-            return (typeof val === 'number' && !isNaN(val)) || typeof val === 'boolean';
+            return (typeof val === 'number' && !isNaN(val) && val !== 0) || typeof val === 'boolean';
           });
+          
+          // Also accept categorical columns if no numeric columns found
+          return hasNumericData;
         })
         .slice(0, 2)  // Take up to 2 columns by default
         .map(col => normalizeColumnName(col));
+      
+      // If still no good columns, fall back to any categorical columns
+      if (effectiveYColumns.length === 0) {
+        effectiveYColumns = columnsArray
+          .filter(col => {
+            const normalizedCol = normalizeColumnName(col);
+            return normalizedCol !== effectiveXAxis && isColumnCategorical(rawData, col);
+          })
+          .slice(0, 2)
+          .map(col => normalizeColumnName(col));
+      }
     }
+    
+    console.log("processData - effectiveYColumns:", effectiveYColumns);
     
     // Calculate statistics for each column
     const stats: Record<string, ColumnStats> = {};
@@ -441,18 +475,24 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     
     columnsArray.forEach(column => {
       const normalizedCol = normalizeColumnName(column);
-      const columnValues = rawData.map(row => row[column]).filter(val => val !== undefined && val !== null);
+      const columnValues = rawData.map(row => row[column])
+        .filter(val => val !== undefined && val !== null && val !== '');
+      
+      console.log(`processData - analyzing column '${column}' (${normalizedCol}):`, columnValues.slice(0, 5));
       
       if (isColumnCategorical(rawData, column)) {
         // Categorical filter
         const uniqueValues = Array.from(new Set(columnValues))
-          .map(val => String(val))
+          .map(val => String(val).trim())
+          .filter(val => val !== '')
           .sort();
+        
+        console.log(`processData - categorical column '${column}': ${uniqueValues.length} unique values:`, uniqueValues);
         
         filterConfigs[normalizedCol] = {
           type: 'categorical',
           availableValues: uniqueValues,
-          selectedValues: uniqueValues // Initially select all values
+          selectedValues: [...uniqueValues] // Create a new array, select all initially
         };
       } else {
         // Numeric filter and stats
@@ -470,25 +510,14 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             max,
             value: min
           };
+          
+          console.log(`processData - numeric column '${column}': min=${min}, max=${max}, avg=${avg}`);
         }
       }
     });
     
+    console.log("processData - filter configs created:", filterConfigs);
     setDataStats(stats);
-    
-    // Update config with determined defaults
-    console.log("processData - setting new config:");
-    console.log("- effectiveXAxis:", effectiveXAxis);
-    console.log("- effectiveYColumns:", effectiveYColumns);
-    console.log("- available columns:", columnsArray);
-    
-    setConfig(prev => ({
-      ...prev,
-      selectedColumns: effectiveYColumns,
-      xAxisColumn: effectiveXAxis,
-      sortBy: effectiveYColumns.length > 0 ? effectiveYColumns[0] : effectiveXAxis,
-      filterConfigs
-    }));
     
     // Process the data rows
     const processedData = rawData.map((row, index) => {
@@ -501,8 +530,8 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         const columnKey = normalizeColumnName(column);
         const value = row[column];
         // Preserve boolean values, convert null/undefined to 0 for numbers, empty string for strings
-        if (value === null || value === undefined) {
-          processedRow[columnKey] = typeof rawData.find(r => r[column] !== null && r[column] !== undefined)?.[column] === 'string' ? '' : 0;
+        if (value === null || value === undefined || value === '') {
+          processedRow[columnKey] = typeof rawData.find(r => r[column] !== null && r[column] !== undefined && r[column] !== '')?.[column] === 'string' ? '' : 0;
         } else {
           processedRow[columnKey] = value;
         }
@@ -522,8 +551,38 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       return processedRow;
     });
     
+    console.log("processData - processed data sample:", processedData.slice(0, 2));
+    
+    // Update config with determined defaults AND filter configs
+    console.log("processData - setting new config:");
+    console.log("- effectiveXAxis:", effectiveXAxis);
+    console.log("- effectiveYColumns:", effectiveYColumns);
+    console.log("- filterConfigs:", filterConfigs);
+    
+    setConfig(prev => ({
+      ...prev,
+      selectedColumns: effectiveYColumns,
+      xAxisColumn: effectiveXAxis,
+      sortBy: effectiveYColumns.length > 0 ? effectiveYColumns[0] : effectiveXAxis,
+      filterConfigs: filterConfigs // This is critical - we need to set the filter configs
+    }));
+    
     setData(processedData);
+    console.log("🔧 processData - setting loading to FALSE");
     setLoading(false);
+    
+    console.log("🔧 processData - completed successfully");
+    console.log("🔧 Final state should be:");
+    console.log("   - loading: false");
+    console.log("   - data.length:", processedData.length);
+    console.log("   - availableColumns:", columnsArray);
+    console.log("   - selectedColumns:", effectiveYColumns);
+    
+    // Force a re-render by triggering a small state change
+    setTimeout(() => {
+      console.log("🔧 FORCING RE-RENDER after data load");
+      setConfig(prev => ({ ...prev })); // This should trigger a re-render
+    }, 100);
   };
   
   // Function to shorten text for display
@@ -534,6 +593,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
   
   // Prepare chart data with filtering, grouping, and sorting
   const prepareChartData = () => {
+    console.log("🔥 prepareChartData CALLED - data.length:", data.length);
+    console.log("🔥 prepareChartData - config.selectedColumns:", config.selectedColumns);
+    console.log("🔥 prepareChartData - config.filterConfigs keys:", Object.keys(config.filterConfigs || {}));
+    
     let filteredData = [...data];
     
     console.log("prepareChartData - starting with:", filteredData.length, "rows");
@@ -559,29 +622,18 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         });
         console.log(`Numeric filter ${column} >= ${filterConfig.value}: ${beforeCount} → ${filteredData.length}`);
       } else if (filterConfig.type === 'categorical') {
-        filteredData = filteredData.filter(row => {
-          const rowValue = row[column];
-          const stringValue = String(rowValue);
-          const included = filterConfig.selectedValues.includes(stringValue);
-          
-          // Debug the first few rows for problematic filters
-          if (beforeCount > 0 && filteredData.length === 0 && column === 'nicetohave') {
-            console.log(`DEBUG ${column}:`);
-            console.log("Raw row value:", rowValue, typeof rowValue);
-            console.log("String value:", stringValue);
-            console.log("Available values:", filterConfig.availableValues);
-            console.log("Selected values:", filterConfig.selectedValues);
-            console.log("Is included:", included);
-          }
-          
-          return included;
-        });
-        console.log(`Categorical filter ${column} (${filterConfig.selectedValues.length}/${filterConfig.availableValues.length} selected): ${beforeCount} → ${filteredData.length}`);
-        if (filteredData.length === 0 && beforeCount > 0) {
-          console.log(`ZERO ROWS after categorical filter for ${column}!`);
-          console.log("Available values:", filterConfig.availableValues);
-          console.log("Selected values:", filterConfig.selectedValues);
-          console.log("Sample row values for this column:", data.slice(0, 3).map(row => `${row[column]} (${typeof row[column]})`));
+        if (filterConfig.selectedValues.length === 0) {
+          console.log(`Categorical filter ${column}: No values selected, filtering out all rows`);
+          filteredData = [];
+        } else {
+          filteredData = filteredData.filter(row => {
+            const rowValue = row[column];
+            const stringValue = String(rowValue).trim();
+            const included = filterConfig.selectedValues.includes(stringValue);
+            
+            return included;
+          });
+          console.log(`Categorical filter ${column} (${filterConfig.selectedValues.length}/${filterConfig.availableValues.length} selected): ${beforeCount} → ${filteredData.length}`);
         }
       }
     });
@@ -616,8 +668,9 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     
     // Return the limited number of rows
     const result = filteredData.slice(0, config.displayCount);
-    console.log("prepareChartData - final result:", result.length, "rows");
-    console.log("prepareChartData - displayCount setting:", config.displayCount);
+    console.log("🔥 prepareChartData - final result:", result.length, "rows");
+    console.log("🔥 prepareChartData - displayCount setting:", config.displayCount);
+    console.log("🔥 prepareChartData - sample result:", result[0]);
     return result;
   };
   
@@ -630,7 +683,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     
     filteredData.forEach(row => {
       const groupValue = row[config.groupByColumn!];
-      const groupKey = String(groupValue);
+      const groupKey = String(groupValue).trim().replace(/[^\w\s-]/g, '');
       
       if (!groups[groupKey]) {
         groups[groupKey] = {
@@ -856,6 +909,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       </div>
     );
   };
+
   const getFilterSummary = () => {
     const summaries = [];
     
@@ -900,6 +954,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     
     return summaries;
   };
+
   const renderFilters = () => (
     <div>
       <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Filters:</div>
@@ -965,7 +1020,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
                 <div style={{ marginBottom: '8px', display: 'flex', gap: '5px' }}>
                   <button
                     onClick={() => updateFilterConfig(column, { 
-                      selectedValues: filterConfig.availableValues 
+                      selectedValues: [...filterConfig.availableValues] 
                     })}
                     style={{ 
                       padding: '3px 8px', 
@@ -1043,11 +1098,28 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     </div>
   );
 
+  const createChartBrush = (chartData: any[]) => {
+    // Only show brush if we have enough data points
+    if (chartData.length <= 10) return null;
+    
+    return (
+      <Brush 
+        key={`brush-${chartKey}-${config.xAxisColumn}-${chartData.length}`}
+        dataKey={config.xAxisColumn} 
+        height={30} 
+        stroke="#8884d8"
+        startIndex={0}
+        endIndex={Math.min(chartData.length - 1, Math.max(19, Math.floor(chartData.length * 0.8)))}
+        travellerWidth={8}
+      />
+    );
+  };
+
   // Chart rendering function 
   const renderChart = () => {
+    console.log("renderChart - function called");
     const chartData = prepareChartData();
     
-    // Add debugging
     console.log("Chart rendering - data length:", chartData.length);
     console.log("Chart rendering - selected columns:", config.selectedColumns);
     console.log("Chart rendering - sample data:", chartData[0]);
@@ -1093,12 +1165,13 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       console.log("Rendering 100% stacked bar chart with data:", percentageData.length, "rows");
       return (
         <BarChart
-          key={`stacked-bar-100-${availableColumns.join('-')}`}
+          key={`${chartKey}-${chartTypeKey}`}
           data={percentageData}
           margin={{ top: 20, right: 30, left: 60, bottom: 100 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
+            key={`xaxis-${chartKey}-${chartTypeKey}`}
             dataKey={config.xAxisColumn}
             angle={isNumericXAxis ? 0 : -45} 
             textAnchor={isNumericXAxis ? 'middle' : 'end'}
@@ -1113,6 +1186,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             name={denormalizeColumnName(config.xAxisColumn)}
           />
           <YAxis 
+            key={`yaxis-${chartKey}-${chartTypeKey}`}
             domain={[0, 100]}
             tickFormatter={(value) => `${value}%`}
           />
@@ -1152,12 +1226,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
               fill={getColumnColor(column, index)} 
             />
           ))}
-          <Brush 
-            key={`stacked-100-brush-${config.xAxisColumn}`}
-            dataKey={config.xAxisColumn} 
-            height={20} 
-            stroke="#8884d8" 
-          />
+          {createChartBrush(chartData)}
         </BarChart>
       );
     }
@@ -1165,12 +1234,13 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     if (config.chartType === 'stackedBar') {
       return (
         <BarChart
-          key={`stacked-bar-${availableColumns.join('-')}`}
+          key={`${chartKey}-${chartTypeKey}`}
           data={chartData}
           margin={{ top: 20, right: 30, left: 60, bottom: 100 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
+            key={`xaxis-${chartKey}-${chartTypeKey}`}
             dataKey={config.xAxisColumn}
             angle={isNumericXAxis ? 0 : -45} 
             textAnchor={isNumericXAxis ? 'middle' : 'end'}
@@ -1184,7 +1254,9 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             }}
             name={denormalizeColumnName(config.xAxisColumn)}
           />
-          <YAxis />
+          <YAxis 
+            key={`yaxis-${chartKey}-${chartTypeKey}`}
+          />
           <Tooltip content={<CustomTooltip />} />
           {/* Custom Legend instead of Recharts Legend */}
           {config.selectedColumns.map((column, index) => (
@@ -1204,11 +1276,13 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     if (config.chartType === 'groupedBar') {
       return (
         <BarChart
+          key={`${chartKey}-${chartTypeKey}`}
           data={chartData}
           margin={{ top: 20, right: 30, left: 60, bottom: 150 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
+            key={`xaxis-${chartKey}-${chartTypeKey}`}
             dataKey={config.xAxisColumn}
             angle={isNumericXAxis ? 0 : -45} 
             textAnchor={isNumericXAxis ? 'middle' : 'end'}
@@ -1218,7 +1292,9 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             tick={{ fontSize: 12 }}
             name={denormalizeColumnName(config.xAxisColumn)}
           />
-          <YAxis />
+          <YAxis 
+            key={`yaxis-${chartKey}-${chartTypeKey}`}
+          />
           <Tooltip content={<CustomTooltip />} />
           {/* Legend removed - using custom legend below chart */}
           {config.selectedColumns.map((column, index) => (
@@ -1229,7 +1305,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
               fill={getColumnColor(column, index)} 
             />
           ))}
-          <Brush dataKey={config.xAxisColumn} height={30} stroke="#8884d8" />
+          {createChartBrush(chartData)}
         </BarChart>
       );
     }
@@ -1237,11 +1313,13 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     if (config.chartType === 'line') {
       return (
         <LineChart
+          key={`${chartKey}-${chartTypeKey}`}
           data={chartData}
           margin={{ top: 20, right: 30, left: 60, bottom: 150 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
+            key={`xaxis-${chartKey}-${chartTypeKey}`}
             dataKey={config.xAxisColumn}
             angle={isNumericXAxis ? 0 : -45} 
             textAnchor={isNumericXAxis ? 'middle' : 'end'}
@@ -1251,7 +1329,9 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             tick={{ fontSize: 12 }}
             name={denormalizeColumnName(config.xAxisColumn)}
           />
-          <YAxis />
+          <YAxis 
+            key={`yaxis-${chartKey}-${chartTypeKey}`}        
+          />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
           {config.selectedColumns.map((column, index) => (
@@ -1264,7 +1344,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
               activeDot={{ r: 8 }}
             />
           ))}
-          <Brush dataKey={config.xAxisColumn} height={30} stroke="#8884d8" />
+          {createChartBrush(chartData)}
         </LineChart>
       );
     }
@@ -1272,12 +1352,13 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     if (config.chartType === 'area') {
       return (
         <AreaChart
-          key={`area-${availableColumns.join('-')}`}
+          key={`${chartKey}-${chartTypeKey}`}
           data={chartData}
           margin={{ top: 20, right: 30, left: 60, bottom: 100 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
+            key={`xaxis-${chartKey}-${chartTypeKey}`}
             dataKey={config.xAxisColumn}
             angle={isNumericXAxis ? 0 : -45} 
             textAnchor={isNumericXAxis ? 'middle' : 'end'}
@@ -1287,7 +1368,9 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             tick={{ fontSize: 12 }}
             name={denormalizeColumnName(config.xAxisColumn)}
           />
-          <YAxis />
+          <YAxis 
+            key={`yaxis-${chartKey}-${chartTypeKey}`}
+          />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
           {config.selectedColumns.map((column, index) => (
@@ -1301,7 +1384,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
               fillOpacity={0.6}
             />
           ))}
-          <Brush dataKey={config.xAxisColumn} height={30} stroke="#8884d8" />
+          {createChartBrush(chartData)}
         </AreaChart>
       );
     }
@@ -1347,11 +1430,13 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     if (config.chartType === 'composed' && config.secondaryAxis) {
       return (
         <ComposedChart
+          key={`${chartKey}-${chartTypeKey}`}
           data={chartData}
           margin={{ top: 20, right: 30, left: 60, bottom: 100 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
+            key={`xaxis-${chartKey}-${chartTypeKey}`}
             dataKey={config.xAxisColumn}
             angle={isNumericXAxis ? 0 : -45} 
             textAnchor={isNumericXAxis ? 'middle' : 'end'}
@@ -1361,8 +1446,14 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             tick={{ fontSize: 12 }}
             name={denormalizeColumnName(config.xAxisColumn)}
           />
-          <YAxis yAxisId="left" />
-          <YAxis yAxisId="right" orientation="right" />
+          <YAxis 
+              key={`yaxis-${chartKey}-${chartTypeKey}`}
+              yAxisId="left" 
+          />
+          <YAxis 
+              key={`yaxis-${chartKey}-${chartTypeKey}`}
+              yAxisId="right" orientation="right"
+          />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
           {config.selectedColumns.map((column, index) => {
@@ -1393,7 +1484,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
               return null;
             }
           })}
-          <Brush dataKey={config.xAxisColumn} height={30} stroke="#8884d8" />
+          {createChartBrush(chartData)}
         </ComposedChart>
       );
     }
@@ -1401,11 +1492,13 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     // Default fallback
     return (
       <BarChart
+        key={`${chartKey}-${chartTypeKey}`}
         data={chartData}
         margin={{ top: 20, right: 30, left: 60, bottom: 100 }}
       >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis 
+          key={`xaxis-${chartKey}-${chartTypeKey}`}
           dataKey={config.xAxisColumn}
           angle={-45} 
           textAnchor="end" 
@@ -1413,7 +1506,9 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
           interval={0}
           tick={{ fontSize: 12 }}
         />
-        <YAxis />
+        <YAxis 
+          key={`yaxis-${chartKey}-${chartTypeKey}`}
+        />
         <Tooltip content={<CustomTooltip />} />
         <Legend />
         {config.selectedColumns.map((column, index) => (
@@ -1425,13 +1520,31 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             fill={getColumnColor(column, index)} 
           />
         ))}
-        <Brush dataKey={config.xAxisColumn} height={30} stroke="#8884d8" />
+        {createChartBrush(chartData)}
       </BarChart>
     );
   };
 
+  // Get chart data - ALWAYS call this to ensure data preparation
+  console.log("🎯 About to call prepareChartData()");
+  const mainChartData = prepareChartData();
+  console.log("🎯 prepareChartData() returned:", mainChartData.length, "rows");
+  
+  console.log("🚀 COMPONENT RENDER - Every time component renders, this shows");
+  console.log("🚀 Current state: loading=" + loading + ", data.length=" + data.length + ", availableColumns.length=" + availableColumns.length);
+  
+  // Add a key diagnostic
+  useEffect(() => {
+    console.log("🔄 useEffect triggered - loading changed to:", loading);
+  }, [loading]);
+  
+  useEffect(() => {
+    console.log("🔄 useEffect triggered - data changed, length:", data.length);
+  }, [data]);
+  
   // Render loading state
   if (loading) {
+    console.log("🔄 LOADING STATE - showing spinner");
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
         <div>
@@ -1458,6 +1571,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
   
   // Render error state
   if (error && data.length === 0) {
+    console.log("❌ ERROR STATE - showing error:", error);
     return (
       <div style={{ 
         padding: '20px', 
@@ -1476,6 +1590,15 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
   
   // Get chart data
   const chartData = prepareChartData();
+  
+  console.log("🎯 MAIN RENDER START");
+  console.log("📊 loading:", loading);
+  console.log("❌ error:", error);
+  console.log("📋 data.length:", data.length);
+  console.log("📑 availableColumns:", availableColumns);
+  console.log("✅ config.selectedColumns:", config.selectedColumns);
+  console.log("📈 chartData.length:", chartData.length);
+  console.log("🎯 MAIN RENDER - about to render component");
   
   return (
     <div 
@@ -1613,7 +1736,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
               <option value="50">50</option>
               <option value="100">100</option>
               <option value="200">200</option>
-              <option value="500">500</option>
+              <option value="500">500</option            >
               <option value="1000">1000</option>
             </select>
           </div>
@@ -1738,7 +1861,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             ))}
           </select>
           <button 
-            onClick={() => exportToCSV(chartData)}
+            onClick={() => exportToCSV(mainChartData)}
             style={{ 
               padding: '6px 12px', 
               backgroundColor: '#2196F3', 
@@ -1803,7 +1926,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
                   borderTop: '1px solid #ddd',
                   color: '#666'
                 }}>
-                  Showing {prepareChartData().length} of {data.length} records
+                  Showing {mainChartData.length} of {data.length} records
                 </div>
               </>
             )}
@@ -1842,8 +1965,6 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         )}
       </div>
       
-      {/* Remove the old attribution box that wasn't showing */}
-      
       {/* Data Summary */}
       <div style={{ 
         marginTop: '20px', 
@@ -1854,7 +1975,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         <h3 style={{ margin: '0 0 10px 0' }}>Data Summary</h3>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
           <div>Total records: <strong>{data.length}</strong></div>
-          <div>Records displayed: <strong>{chartData.length}</strong></div>
+          <div>Records displayed: <strong>{mainChartData.length}</strong></div>
           <div>
             {config.groupByColumn ? 
               `Grouped by: ${denormalizeColumnName(config.groupByColumn)}` : 

@@ -1,6 +1,6 @@
 {
   "name": "charting-contacts",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "homepage": "https://inventica.com/dataviz",
   "dependencies": {
@@ -17,7 +17,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack serve --mode development --open",
-    "build": "webpack --mode production"
+    "build": "webpack --mode production",
+    "postversion": "git push && git push --tags"
   },
   "keywords": [],
   "author": "",

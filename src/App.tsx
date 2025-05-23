@@ -1,5 +1,6 @@
 import React from 'react';
 import { GenericDataChart } from './components/GenericDataChart';
+import packageJson from "../package.json";
 
 const App: React.FC = () => {
   return (
@@ -25,7 +26,7 @@ const App: React.FC = () => {
       />
       
       <footer style={{ marginTop: '40px', padding: '20px 0', borderTop: '1px solid #ddd', color: '#888', textAlign: 'center' }}>
-        <p>Data visualization powered by Recharts. CSV parsing by PapaParse. ©Puneet Singh Lamba, Inventica.com</p>
+        <p>Data visualization powered by Recharts. CSV parsing by PapaParse. ©Puneet Singh Lamba, <a href="http://inventica.com" target="blank">Inventica Consulting</a>. Version: {packageJson.version}</p>
       </footer>
     </div>
   );

@@ -11,6 +11,9 @@ import {
   ScatterChart, Scatter, ZAxis, ComposedChart
 } from 'recharts';
 import Papa from 'papaparse';
+import packageJson from '../../package.json';
+
+const version = packageJson.version;
 
 // Utility functions 
 const normalizeColumnName = (column: string): string => {
@@ -873,39 +876,64 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  // Custom Legend component to avoid persistent state issues
   const CustomLegend = () => {
     console.log("CustomLegend - config.selectedColumns:", config.selectedColumns);
     console.log("CustomLegend - availableColumns:", availableColumns);
     
+    if (config.selectedColumns.length === 0) return null;
+    
     return (
       <div style={{
         display: 'flex',
-        justifyContent: 'center',
+        flexDirection: 'column',
         alignItems: 'center',
-        marginTop: '10px',
-        gap: '20px'
+        marginTop: '15px',
+        marginBottom: '10px',
+        padding: '10px',
+        backgroundColor: '#f9f9f9',
+        borderRadius: '4px',
+        border: '1px solid #eee'
       }}>
-        {config.selectedColumns.map((column, index) => (
-          <div key={`custom-legend-${column}`} style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}>
-            <div style={{
-              width: '14px',
-              height: '14px',
-              backgroundColor: getColumnColor(column, index),
-              border: '1px solid #ccc'
-            }} />
-            <span style={{
-              fontSize: '12px',
-              color: '#666'
+        {/* Legend Label */}
+        <div style={{
+          fontSize: '12px',
+          fontWeight: 'bold',
+          color: '#333',
+          marginBottom: '8px'
+        }}>
+          Selected Columns:
+        </div>
+        
+        {/* Legend Items */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '20px',
+          flexWrap: 'wrap'
+        }}>
+          {config.selectedColumns.map((column, index) => (
+            <div key={`custom-legend-${column}`} style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
             }}>
-              {denormalizeColumnName(column)}
-            </span>
-          </div>
-        ))}
+              <div style={{
+                width: '16px',
+                height: '16px',
+                backgroundColor: getColumnColor(column, index),
+                border: '1px solid #ccc',
+                borderRadius: '2px'
+              }} />
+              <span style={{
+                fontSize: '12px',
+                color: '#666'
+              }}>
+                {denormalizeColumnName(column)}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -1106,7 +1134,8 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       <Brush 
         key={`brush-${chartKey}-${config.xAxisColumn}-${chartData.length}`}
         dataKey={config.xAxisColumn} 
-        height={30} 
+        height={25} 
+        //y={375}
         stroke="#8884d8"
         startIndex={0}
         endIndex={Math.min(chartData.length - 1, Math.max(19, Math.floor(chartData.length * 0.8)))}
@@ -1120,6 +1149,43 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     console.log("renderChart - function called");
     const chartData = prepareChartData();
     
+    // Helper function to generate Y-axis label
+    const getYAxisLabel = () => {
+      if (config.selectedColumns.length === 1) {
+        return denormalizeColumnName(config.selectedColumns[0]);
+      } else if (config.selectedColumns.length > 1) {
+        // For multiple columns, show a generic label or combine names
+        return config.selectedColumns.map(col => denormalizeColumnName(col)).join(' + ');
+      }
+      return 'Values';
+    };
+
+    // For grouped data, might want different y-axis label
+    const getYAxisLabelForGrouped = () => {
+      if (config.groupByColumn) {
+        return `Aggregated Values (Grouped by ${denormalizeColumnName(config.groupByColumn)})`;
+      }
+      return getYAxisLabel();
+    };
+
+    // centralize margin definitions for all charts
+    // Then use everywhere:
+    //    <BarChart margin={getMargins()} data={chartData}>
+    // these margin control the space outside the chart area, used by labels etc.
+    const getMargins = () => {
+      const base = { top: 20, right: 30, left: 100, bottom: 0 };
+
+      switch (config.chartType) {
+        case 'line':
+        case 'groupedBar':
+          return { ...base, bottom: 150 }; // More space for rotated X labels
+        case 'composed':
+          return { ...base, right: 60 };   // More space for right Y-axis
+        default:
+          return base;
+      }
+    };
+
     console.log("Chart rendering - data length:", chartData.length);
     console.log("Chart rendering - selected columns:", config.selectedColumns);
     console.log("Chart rendering - sample data:", chartData[0]);
@@ -1167,7 +1233,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         <BarChart
           key={`${chartKey}-${chartTypeKey}`}
           data={percentageData}
-          margin={{ top: 20, right: 30, left: 60, bottom: 100 }}
+          margin={getMargins()}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
@@ -1189,6 +1255,13 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             key={`yaxis-${chartKey}-${chartTypeKey}`}
             domain={[0, 100]}
             tickFormatter={(value) => `${value}%`}
+            label={{ 
+              value: 'Percentage (%)', 
+              angle: -90, 
+              position: 'left',
+              offset: 20,
+              style: { textAnchor: 'middle' }
+            }}
           />
           <Tooltip 
             content={({ active, payload, label }) => {
@@ -1231,16 +1304,16 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       );
     }
     
+    // This is the default chart the app loads with
     if (config.chartType === 'stackedBar') {
       return (
         <BarChart
           key={`${chartKey}-${chartTypeKey}`}
           data={chartData}
-          margin={{ top: 20, right: 30, left: 60, bottom: 100 }}
+          margin={getMargins()}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
-            key={`xaxis-${chartKey}-${chartTypeKey}`}
             dataKey={config.xAxisColumn}
             angle={isNumericXAxis ? 0 : -45} 
             textAnchor={isNumericXAxis ? 'middle' : 'end'}
@@ -1253,9 +1326,16 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
               return stringValue.length > 15 ? stringValue.substring(0, 15) + '...' : stringValue;
             }}
             name={denormalizeColumnName(config.xAxisColumn)}
-          />
+         />
           <YAxis 
             key={`yaxis-${chartKey}-${chartTypeKey}`}
+            label={{ 
+              value: config.groupByColumn ? getYAxisLabelForGrouped() : getYAxisLabel(), 
+              angle: -90, 
+              position: 'left',
+              offset: 20,
+              style: { textAnchor: 'middle' }
+            }}          
           />
           <Tooltip content={<CustomTooltip />} />
           {/* Custom Legend instead of Recharts Legend */}
@@ -1278,7 +1358,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         <BarChart
           key={`${chartKey}-${chartTypeKey}`}
           data={chartData}
-          margin={{ top: 20, right: 30, left: 60, bottom: 150 }}
+          margin={getMargins()}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
@@ -1294,6 +1374,14 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
           />
           <YAxis 
             key={`yaxis-${chartKey}-${chartTypeKey}`}
+            label={{ 
+              value: config.groupByColumn ? getYAxisLabelForGrouped() : getYAxisLabel(), 
+              //     ^^^^ Same conditional logic as stackedBar
+              angle: -90, 
+              position: 'left',
+              offset: 20,
+              style: { textAnchor: 'middle' }
+            }}
           />
           <Tooltip content={<CustomTooltip />} />
           {/* Legend removed - using custom legend below chart */}
@@ -1315,7 +1403,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         <LineChart
           key={`${chartKey}-${chartTypeKey}`}
           data={chartData}
-          margin={{ top: 20, right: 30, left: 60, bottom: 150 }}
+          margin={getMargins()}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
@@ -1331,6 +1419,13 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
           />
           <YAxis 
             key={`yaxis-${chartKey}-${chartTypeKey}`}        
+            label={{ 
+              value: getYAxisLabel(), 
+              angle: -90, 
+              position: 'left',
+              offset: 20,
+              style: { textAnchor: 'middle' }
+            }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
@@ -1354,7 +1449,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         <AreaChart
           key={`${chartKey}-${chartTypeKey}`}
           data={chartData}
-          margin={{ top: 20, right: 30, left: 60, bottom: 100 }}
+          margin={getMargins()}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
@@ -1370,6 +1465,13 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
           />
           <YAxis 
             key={`yaxis-${chartKey}-${chartTypeKey}`}
+            label={{ 
+              value: getYAxisLabel(), 
+              angle: -90, 
+              position: 'left',
+              offset: 20,
+              style: { textAnchor: 'middle' }
+            }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
@@ -1392,34 +1494,63 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     console.log("Chart type:", config.chartType);
     console.log("Secondary axis:", config.secondaryAxis);
     
-    if (config.chartType === 'scatter' && config.secondaryAxis) {
+    if (config.chartType === 'scatter') {
+      
       console.log("Rendering scatter chart - X:", config.xAxisColumn, "Y:", config.secondaryAxis);
       console.log("Scatter data sample:", chartData.slice(0, 2));
+      
+      // Auto-select secondary axis if not already set
+      const effectiveSecondaryAxis = config.secondaryAxis || 
+      (config.selectedColumns.length > 0 ? config.selectedColumns[0] : null);
+
+      if (!effectiveSecondaryAxis) {
+        return (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
+            <div style={{ textAlign: 'center' }}>
+              <h3>Scatter Plot Setup Required</h3>
+              <p>Please select a Y-Axis column for the scatter plot</p>
+              <p>Available numeric columns: {config.selectedColumns.map(col => denormalizeColumnName(col)).join(', ')}</p>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <ScatterChart
+          key={`${chartKey}-${chartTypeKey}`}
           width={800}
           height={400}
           data={chartData}
-          margin={{ top: 20, right: 30, left: 60, bottom: 100 }}
+          margin={getMargins()}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
+            key={`${chartKey}-${chartTypeKey}`}
             type="number" 
             dataKey={config.xAxisColumn}
             name={denormalizeColumnName(config.xAxisColumn)} 
             domain={['dataMin', 'dataMax']}
           />
           <YAxis 
+            key={`yaxis-${chartKey}-${chartTypeKey}`}
             type="number" 
-            dataKey={config.secondaryAxis} 
-            name={denormalizeColumnName(config.secondaryAxis)} 
+            dataKey={effectiveSecondaryAxis} 
+            name={denormalizeColumnName(effectiveSecondaryAxis)} 
             domain={['dataMin', 'dataMax']}
+            label={{ 
+              value: denormalizeColumnName(effectiveSecondaryAxis), 
+              angle: -90, 
+              position: 'left',
+              offset: 20,
+              style: { textAnchor: 'middle' }
+            }}          
           />
           <ZAxis dataKey="id" range={[50, 50]} />
           <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
           {/* Legend removed - using custom legend below chart */}
           <Scatter 
-            name={`${denormalizeColumnName(config.xAxisColumn)} vs ${denormalizeColumnName(config.secondaryAxis)}`} 
+            key={`${chartKey}-${chartTypeKey}-scatter-points`}
+            name={`${denormalizeColumnName(config.xAxisColumn)} vs ${denormalizeColumnName(effectiveSecondaryAxis)}`} 
             data={chartData}
             fill="#8884d8"
           />
@@ -1432,7 +1563,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         <ComposedChart
           key={`${chartKey}-${chartTypeKey}`}
           data={chartData}
-          margin={{ top: 20, right: 30, left: 60, bottom: 100 }}
+          margin={getMargins()} 
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
@@ -1449,10 +1580,24 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
           <YAxis 
               key={`yaxis-${chartKey}-${chartTypeKey}`}
               yAxisId="left" 
+              label={{ 
+                value: denormalizeColumnName(config.selectedColumns[0]), 
+                angle: -90, 
+                position: 'left', // if left is too extreme, use insideLeft with offset: 20 as a separate attribute
+                offset: 20,
+                style: { textAnchor: 'middle' }
+              }}
           />
           <YAxis 
               key={`yaxis-${chartKey}-${chartTypeKey}`}
               yAxisId="right" orientation="right"
+              label={{ 
+                value: denormalizeColumnName(config.secondaryAxis), 
+                angle: 90, 
+                position: 'right',
+                //offset: -20,
+                style: { textAnchor: 'middle' }
+              }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
@@ -1494,7 +1639,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       <BarChart
         key={`${chartKey}-${chartTypeKey}`}
         data={chartData}
-        margin={{ top: 20, right: 30, left: 60, bottom: 100 }}
+        margin={getMargins()}
       >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis 
@@ -1505,9 +1650,22 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
           height={100} 
           interval={0}
           tick={{ fontSize: 12 }}
+          label={{ 
+            value: denormalizeColumnName(config.xAxisColumn), 
+            position: 'insideBottom', 
+            offset: -10,
+            style: { textAnchor: 'middle' }
+          }}          
         />
         <YAxis 
           key={`yaxis-${chartKey}-${chartTypeKey}`}
+          label={{ 
+            value: config.groupByColumn ? getYAxisLabelForGrouped() : getYAxisLabel(), 
+            angle: -90, 
+            position: 'left',
+            offset: 20,
+            style: { textAnchor: 'middle' }
+          }}          
         />
         <Tooltip content={<CustomTooltip />} />
         <Legend />
@@ -1881,16 +2039,34 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         {/* Main Chart */}
         <div style={{ 
           flex: 1,
-          height: typeof height === 'number' ? `${height}px` : height, 
+          height: typeof height === 'number' ? `${height}px` : height,
           border: '1px solid #ddd', 
           borderRadius: '5px',
-          padding: '10px'
+          padding: '10px',
+          display: 'flex',
+          flexDirection: 'column'
         }}>
-          <ResponsiveContainer key={`chart-container-${availableColumns.join('-')}`}>
-            {renderChart()}
-          </ResponsiveContainer>
-          {/* Custom Legend */}
+          {/* Legend at Top */}
           <CustomLegend />
+          
+          {/* Chart takes remaining space */}
+          {/*<div style={{ flex: 1 }}>
+            <ResponsiveContainer>
+              {renderChart()}
+            </ResponsiveContainer>
+          </div>*/}
+
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div style={{ flex: 1 }}>
+              <ResponsiveContainer>
+                {renderChart()}
+              </ResponsiveContainer>
+            </div>
+            <div style={{ textAlign: 'center', padding: '8px', fontSize: '16px', color: '#666' }}>
+              X-Axis: {denormalizeColumnName(config.xAxisColumn)}
+            </div>
+          </div>
+
         </div>
         
         {/* Filter Summary Sidebar */}
@@ -2031,6 +2207,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
           <li><strong>Data export</strong>: Export filtered data to CSV for further analysis</li>
           <li><strong>Statistics summary</strong>: View key statistics for each column in your dataset</li>
           <li><strong>File upload support</strong>: Drag and drop CSV files for instant visualization</li>
+          <li><strong>Scatter Plots</strong>: Can be tricky to use. Remember they always compare two metrics to show the correlation between them</li>
         </ul>
       </div>
     </div>

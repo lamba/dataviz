@@ -1,6 +1,6 @@
 // File: /Users/lamba/Projects/js/charting_generic_enhanced/README.MD
 
-<span style="color: blue;">Puneet Lamba. May 24, 2025.</span>
+<span style="color: blue;">Puneet Lamba. May 25, 2025.</span>
 
 # TOC
 
@@ -27,4 +27,10 @@
 		- More complicated than it seems. Average of what over what? Better to **do calculations outside the charting system (in Excel and then use the charting for visual analysis**
 		- See my write up on pros/cons of Excel v DataViz in `/Users/lamba/Dropbox/my-docs/md-notes/tech/js/js-notes.pdf`
 	- Added logo
-
+- v1.0.6
+	- Fixed composed chart sorting, y-axis assignment, and y-axis labeling issues
+- v1.0.7
+	- Scatter plot enhancements 
+		- Provide more user feedback (e.g. both axes MUST be numeric)
+		- Quadrant based coloring
+		- If a third numeric column is selected, dots will be sized based on that value (bigger = higher value)

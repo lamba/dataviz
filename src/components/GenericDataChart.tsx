@@ -134,7 +134,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
   
   /************** 
   STATE VARIABLES
-  **************/
+  ***************/
 
   const [calculatedColumns, setCalculatedColumns] = useState<Record<string, any>>({});
 
@@ -147,6 +147,9 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Use for export to SVG
+  const chartRef = useRef<HTMLDivElement>(null);
 
   // Processed data
   const [data, setData] = useState<Record<string, any>[]>([]);
@@ -242,6 +245,70 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
    * COMPONENT FUNCTIONS - OTHER
   ******************************/
 
+  const sortData = (data: any[], sortBy: string, xAxisColumn: string) => {
+    return [...data].sort((a: any, b: any) => {
+      const valA = a[sortBy];
+      const valB = b[sortBy];
+      
+      // Handle nulls
+      if (valA == null && valB == null) return 0;
+      if (valA == null) return 1;
+      if (valB == null) return -1;
+      
+      if (sortBy === 'count') {
+        return b.count - a.count; // Descending count
+      } else if (sortBy === xAxisColumn) {
+        // X-axis: ascending
+        return typeof valA === 'string' 
+          ? valA.localeCompare(valB, undefined, { numeric: true })
+          : (Number(valA) || 0) - (Number(valB) || 0);
+      } else {
+        // Y-axis: descending
+        return (Number(valB) || 0) - (Number(valA) || 0);
+      }
+    });
+  };
+
+  const exportToSVG = () => {
+    if (!chartRef.current) {
+      alert('Chart not ready for export');
+      return;
+    }
+    
+    // Find the SVG element inside the chart container
+    const svgElement = chartRef.current.querySelector('svg');
+    
+    if (!svgElement) {
+      alert('No SVG found in chart');
+      return;
+    }
+    
+    // Clone the SVG to avoid modifying the original
+    const svgClone = svgElement.cloneNode(true) as SVGElement;
+    
+    // Add proper SVG attributes for standalone file
+    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+    
+    // Get the SVG content as string
+    const svgData = new XMLSerializer().serializeToString(svgClone);
+    
+    // Create blob and download
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const svgUrl = URL.createObjectURL(svgBlob);
+    
+    // Create download link
+    const downloadLink = document.createElement('a');
+    downloadLink.href = svgUrl;
+    downloadLink.download = `${title.replace(/\s+/g, '_').toLowerCase()}_chart.svg`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    
+    // Clean up
+    URL.revokeObjectURL(svgUrl);
+  };
+
   const debugChartData = () => {
     const chartData = prepareChartData();
     console.log("🔍 CHART DATA DEBUG:");
@@ -252,7 +319,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     
     // Check if avg_revenue values exist
     config.selectedColumns.forEach(col => {
-      const sampleValue = chartData[0]?.[col];
+      const sampleValue = chartData.length > 0 ? (chartData[0] as any)[col] : undefined;
       console.log(`Column '${col}' sample value:`, sampleValue, typeof sampleValue);
     });
   };
@@ -1030,30 +1097,19 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     
     // Apply grouping if needed
     if (config.groupByColumn) {
+      console.log("🔥 Taking GROUPED path - sorting won't work here yet");
       return prepareGroupedData(filteredData);
     }
     
+    console.log("🔥 About to sort by:", config.sortBy);
+    console.log("🔥 Data before sort:", filteredData.slice(0, 3));
+
     // Sort data
-    if (config.sortBy === config.xAxisColumn) {
-      // If sorting by the same column used for X-axis, sort in ascending order
-      filteredData.sort((a, b) => {
-        const valA = a[config.sortBy];
-        const valB = b[config.sortBy];
-        
-        if (typeof valA === 'string' && typeof valB === 'string') {
-          return valA.localeCompare(valB);
-        } else {
-          return (valA || 0) - (valB || 0);
-        }
-      });
-    } else {
-      filteredData.sort((a, b) => {
-        const valA = a[config.sortBy] || 0;
-        const valB = b[config.sortBy] || 0;
-        return valB - valA; // Descending order
-      });
-    }
-    
+    filteredData = sortData(filteredData, config.sortBy, config.xAxisColumn);
+
+    console.log("🔥 Data after sort:", filteredData.slice(0, 3));
+    console.log("🔥 SORTING DEBUG - END");
+
     // Return the limited number of rows
     const result = filteredData.slice(0, config.displayCount);
     console.log("🔥 prepareChartData - final result:", result.length, "rows");
@@ -1167,32 +1223,36 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         }
       });
       
-      return enhancedGroup;
+      // sort grouped data
+      const sortedGroupedData = sortData(groupedDataWithCalculations, config.sortBy, config.xAxisColumn);
+
+      return sortedGroupedData.slice(0, config.displayCount);
+
     });
     
     console.log("🔧 prepareGroupedData - groups after ratio recalculation:");
     groupedDataWithCalculations.forEach(group => {
       const ratioColumns = Object.keys(calculatedColumns);
       const ratioValues = ratioColumns.reduce((acc, col) => {
-        acc[col] = group[col];
+        (acc as any)[col] = (group as any)[col] || 0;
         return acc;
       }, {} as Record<string, any>);
       
-      console.log(`🔧 ${group.id}:`, {
-        revenue: group.revenue,
-        marketingspend: group.marketingspend,
-        count: group.count,
+      console.log(`🔧 ${(group as any).id}:`, {
+        revenue: (group as any).revenue,
+        marketingspend: (group as any).marketingspend,
+        count: (group as any).count,
         calculatedColumns: ratioValues
       });
     });
     
     // Sort grouped data
     if (config.sortBy === 'count') {
-      groupedDataWithCalculations.sort((a, b) => b.count - a.count);
+      groupedDataWithCalculations.sort((a: any, b: any) => (b as any).count - (a as any).count);
     } else if (config.selectedColumns.includes(config.sortBy)) {
-      groupedDataWithCalculations.sort((a, b) => b[config.sortBy] - a[config.sortBy]);
+      groupedDataWithCalculations.sort((a: any, b: any) => (b as any)[config.sortBy] - (a as any)[config.sortBy]);
     } else {
-      groupedDataWithCalculations.sort((a, b) => String(a[config.xAxisColumn]).localeCompare(String(b[config.xAxisColumn])));
+      groupedDataWithCalculations.sort((a: any, b: any) => String((a as any)[config.xAxisColumn]).localeCompare(String((b as any)[config.xAxisColumn])));
     }
     
     const limitedGroupedData = groupedDataWithCalculations.slice(0, config.displayCount);
@@ -1288,7 +1348,29 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
   
   // Handle config changes
   const updateConfig = (changes: Partial<ChartConfig>) => {
-    setConfig(prev => ({ ...prev, ...changes }));
+    setConfig(prev => {
+      const newConfig = { ...prev, ...changes };
+      
+      // If selected columns changed, validate sortBy
+      if (changes.selectedColumns) {
+        const validSortOptions = [
+          ...newConfig.selectedColumns,
+          newConfig.xAxisColumn,
+          ...(newConfig.groupByColumn ? ['count'] : [])
+        ];
+        
+        // If current sortBy is not valid, pick a new one
+        if (!validSortOptions.includes(newConfig.sortBy)) {
+          newConfig.sortBy = newConfig.selectedColumns.length > 0 
+            ? newConfig.selectedColumns[0] 
+            : newConfig.xAxisColumn;
+          
+          console.log(`🔧 Auto-updated sortBy from '${prev.sortBy}' to '${newConfig.sortBy}'`);
+        }
+      }
+      
+      return newConfig;
+    });
   };
 
   // Helper function to update filter configurations (type-safe)
@@ -1390,6 +1472,16 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     
     if (config.selectedColumns.length === 0) return null;
     
+    const getSortingDescription = () => {
+      if (config.sortBy === 'count') {
+        return 'Sorted by Count (High to Low)';
+      } else if (config.sortBy === config.xAxisColumn) {
+        return `Sorted by ${denormalizeColumnName(config.xAxisColumn)} (Low to High)`;
+      } else {
+        return `Sorted by ${denormalizeColumnName(config.sortBy)} (High to Low)`;
+      }
+    };
+
     return (
       <div style={{
         display: 'flex',
@@ -1442,6 +1534,24 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             </div>
           ))}
         </div>
+
+        {/* Sorting Information */}
+        <div style={{
+          fontSize: '11px',
+          color: '#666',
+          fontStyle: 'italic',
+          textAlign: 'center',
+          borderTop: '1px solid #ddd',
+          paddingTop: '6px',
+          marginTop: '4px'
+        }}>
+          {getSortingDescription()}
+          {config.groupByColumn && (
+            <span> • Grouped by {denormalizeColumnName(config.groupByColumn)}</span>
+          )}
+          <span> • Showing {mainChartData.length} of {data.length} records</span>
+        </div>
+
       </div>
     );
   };
@@ -1804,7 +1914,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     console.log("Chart rendering - sample data:", chartData[0]);
     console.log("Chart rendering - X-axis column:", config.xAxisColumn);
     console.log("Chart rendering - available columns:", availableColumns);
-    console.log("Chart rendering - X-axis values:", chartData.slice(0, 3).map(row => row[config.xAxisColumn]));
+    console.log("Chart rendering - X-axis values:", chartData.slice(0, 3).map(row => (row as any)[config.xAxisColumn]));
     
     if (chartData.length === 0) {
       return (
@@ -1828,15 +1938,15 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       );
     }
     
-    const isNumericXAxis = typeof chartData[0]?.[config.xAxisColumn] === 'number';
+    const isNumericXAxis = chartData.length > 0 && typeof (chartData[0] as any)[config.xAxisColumn] === 'number';
     
     if (config.chartType === 'stackedBar100') {
       // Calculate percentage data for 100% stacked bars
       const percentageData = chartData.map(row => {
-        const total = config.selectedColumns.reduce((sum, col) => sum + (row[col] || 0), 0);
+        const total = config.selectedColumns.reduce((sum, col) => sum + ((row as any)[col] || 0), 0);
         const percentageRow = { ...row };
         config.selectedColumns.forEach(col => {
-          percentageRow[col] = total > 0 ? ((row[col] || 0) / total) * 100 : 0;
+          (percentageRow as any)[col] = total > 0 ? (((row as any)[col] || 0) / total) * 100 : 0;
         });
         return percentageRow;
       });
@@ -2210,7 +2320,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       console.log(`🔧 Composed Chart Debug:`, {
         secondaryAxis: config.secondaryAxis,
         actualSecondaryKey: actualSecondaryKey,
-        sampleValue: chartData[0]?.[actualSecondaryKey],
+        sampleValue: (chartData[0] as any)?.[actualSecondaryKey],
         availableKeys: Object.keys(chartData[0] || {})
       });
 
@@ -2236,7 +2346,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             key={`yaxis-left-${chartKey}-${chartTypeKey}`}
             yAxisId="left" 
             label={{ 
-              value: denormalizeColumnName(config.selectedColumns[0]), 
+              value: config.secondaryAxis ? denormalizeColumnName(config.secondaryAxis) : 'Bars',
               angle: -90, 
               position: 'left',
               offset: 20,
@@ -2248,9 +2358,14 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             yAxisId="right" 
             orientation="right"
             label={{ 
-              value: denormalizeColumnName(config.secondaryAxis), 
+              value: config.selectedColumns
+                .filter(col => col !== config.secondaryAxis)
+                .map(col => denormalizeColumnName(col))
+                .slice(0, 4)  // Show first 2 line column names
+                .join(' + ') || 'Lines',
               angle: 90, 
               position: 'right',
+              offset: 20,
               style: { textAnchor: 'middle' }
             }}
           />
@@ -2260,7 +2375,8 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             const actualDataKey = findDataKey(column, chartData[0]);
             
             // Primary column as bars
-            if (column === config.selectedColumns[0]) {
+            if (column === config.secondaryAxis) {
+              // Secondary axis column becomes BAR (left axis)
               return (
                 <Bar 
                   key={column} 
@@ -2270,20 +2386,18 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
                   yAxisId="left"
                 />
               );
-            } else if (column === config.secondaryAxis) {
-              // Secondary axis as line - use the actual data key
+            } else {
+              // ALL OTHER columns become LINES (right axis)  
               return (
                 <Line 
                   key={column}
                   type="monotone"
-                  dataKey={actualSecondaryKey}  // ← Use the resolved key
+                  dataKey={actualDataKey}
                   name={denormalizeColumnName(column)} 
                   stroke={getColumnColor(column, index)} 
                   yAxisId="right"
                 />
               );
-            } else {
-              return null;
             }
           })}
           {createChartBrush(chartData)}
@@ -2545,21 +2659,33 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
           {/* Secondary Axis for Scatter/Composed */}
           {(config.chartType === 'scatter' || config.chartType === 'composed') && (
             <div>
-              <label htmlFor="secondaryAxis" style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Y-Axis Column:</label>
+              <label htmlFor="secondaryAxis" style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>
+                {config.chartType === 'composed' ? 'Left Y-Axis Column (Bars):' : 'Y-Axis Column:'}
+              </label>
               <select 
                 id="secondaryAxis" 
                 value={config.secondaryAxis || ''} 
                 onChange={e => updateConfig({ secondaryAxis: e.target.value || null })}
                 style={{ padding: '6px 10px', borderRadius: '4px', border: '1px solid #ccc', minWidth: '150px' }}
               >
-                <option value="">Select column...</option>
+                <option value="">
+                  {config.chartType === 'composed' ? 'Select column for bars...' : 'Select column...'}
+                </option>
                 {config.selectedColumns.map(column => (
                   <option key={column} value={column}>{denormalizeColumnName(column)}</option>
                 ))}
               </select>
+              
+              {/* Helper text */}
+              <div style={{ fontSize: '0.8em', color: '#666', marginTop: '5px' }}>
+                {config.chartType === 'composed' 
+                  ? 'Selected column becomes bars (left axis). Other columns become lines (right axis).'
+                  : 'Select the column to plot on the Y-axis.'
+                }
+              </div>
             </div>
           )}
-          
+
           {/* Display Count */}
           <div>
             <label htmlFor="displayCount" style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Show Top:</label>
@@ -2713,21 +2839,39 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
           >
             Export Data
           </button>
+          <button 
+            onClick={exportToSVG}
+            style={{ 
+              padding: '6px 12px', 
+              backgroundColor: '#FF9800', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            🎨 Export SVG
+          </button>
         </div>
       </div>
       
       {/* Chart Display with Filter Summary */}
-      <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
+      <div 
+        ref={chartRef}
+        style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
+        
         {/* Main Chart */}
-        <div style={{ 
-          flex: 1,
-          height: typeof height === 'number' ? `${height}px` : height,
-          border: '1px solid #ddd', 
-          borderRadius: '5px',
-          padding: '10px',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
+        <div 
+          style={{ 
+            flex: 1,
+            height: typeof height === 'number' ? `${height}px` : height,
+            border: '1px solid #ddd', 
+            borderRadius: '5px',
+            padding: '10px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
           {/* Legend at Top */}
           <CustomLegend />
           
@@ -2893,6 +3037,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         <h3 style={{ margin: '0 0 10px 0' }}>Usage Notes</h3>
         <ul style={{ paddingLeft: '20px' }}>
           <li><strong>Scatter Plots</strong>: Can be tricky to use. Remember they always compare two metrics to show the correlation between them</li>
+          <li><strong>Composed Charts</strong>: Only the column you select is assigned to left y-axis. If you don't select one, the chart defaults to stacked bar. The remaining selected columns get assinged the right y-axis</li>
           <li><strong>Recommended Workflow</strong>: Though I added functions to the tool to try them out, the ideal workflow is <i>data prep in Excel, visualization in DataViz</i></li>
         </ul>
       </div>

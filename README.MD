@@ -1,6 +1,6 @@
 // File: /Users/lamba/Projects/js/charting_generic_enhanced/README.MD
 
-<span style="color: blue;">Puneet Lamba. May 23, 2025.</span>
+<span style="color: blue;">Puneet Lamba. May 24, 2025.</span>
 
 # TOC
 
@@ -22,3 +22,9 @@
 	- Fixed "Selected Columns:" UI and moved it to the top so it's not obstructed by the brush bar
 	- Fixed footer for Inventica Consulting
 	- Defined x-axis labels and moved them out of the chart area so that they don't conflict the the brush bar which moves around as it displays its own labels
+- v1.0.5
+	- Added the ability to created calculated columns using simple formulas
+		- More complicated than it seems. Average of what over what? Better to **do calculations outside the charting system (in Excel and then use the charting for visual analysis**
+		- See my write up on pros/cons of Excel v DataViz in `/Users/lamba/Dropbox/my-docs/md-notes/tech/js/js-notes.pdf`
+	- Added logo
+

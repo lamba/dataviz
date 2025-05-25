@@ -2,8 +2,6 @@
 // pslamba@gmail.com
 // inventica.com
 
-// Copyright, Puneet Singh Lamba pslamba@gmail.com
-
 import React, { useState, useEffect, useRef, DragEvent } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
@@ -95,7 +93,10 @@ interface GenericDataChartProps {
   attributionUrl?: string;
 }
 
-// Component props
+/******************
+ * COMPONENT PROPS
+*******************/
+
 export const GenericDataChart: React.FC<GenericDataChartProps> = ({
   // Data source
   csvPath,
@@ -130,7 +131,12 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
   attributionUrl
 
 }) => {
-  // State variables
+  
+  /************** 
+  STATE VARIABLES
+  **************/
+
+  const [calculatedColumns, setCalculatedColumns] = useState<Record<string, any>>({});
 
   const [chartKey, setChartKey] = useState<string>(generateChartKey());
 
@@ -200,6 +206,225 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       }
     }
     return value;
+  };
+
+  /**************************
+   * COMPONENT FUNCTIONS - UI
+  ***************************/
+
+  const DebugButton = () => (
+    <button 
+      onClick={debugCalculatedColumns}
+      style={{
+        ...quickButtonStyle,
+        backgroundColor: '#ffebee',
+        border: '1px solid #f44336'
+      }}
+    >
+      🐛 Debug Formulas
+    </button>
+  );
+
+  const DebugChartDataButton = () => (
+    <button 
+      onClick={debugChartData}
+      style={{
+        ...quickButtonStyle,
+        backgroundColor: '#ffe6e6',
+        border: '1px solid #ff5722'
+      }}
+    >
+      🔍 Debug Chart Data
+    </button>
+  );
+
+  /*****************************
+   * COMPONENT FUNCTIONS - OTHER
+  ******************************/
+
+  const debugChartData = () => {
+    const chartData = prepareChartData();
+    console.log("🔍 CHART DATA DEBUG:");
+    console.log("Chart data sample:", chartData[0]);
+    console.log("Available keys in first row:", Object.keys(chartData[0] || {}));
+    console.log("Selected columns:", config.selectedColumns);
+    console.log("Calculated columns:", Object.keys(calculatedColumns));
+    
+    // Check if avg_revenue values exist
+    config.selectedColumns.forEach(col => {
+      const sampleValue = chartData[0]?.[col];
+      console.log(`Column '${col}' sample value:`, sampleValue, typeof sampleValue);
+    });
+  };
+
+  const debugCalculatedColumns = () => {
+    console.log("🔍 DEBUGGING CALCULATED COLUMNS:");
+    console.log("calculatedColumns object:", calculatedColumns);
+    console.log("Available columns:", availableColumns);
+    console.log("Sample data row:", data[0]);
+    
+    // Test the calculation manually
+    if (Object.keys(calculatedColumns).length > 0) {
+      Object.entries(calculatedColumns).forEach(([columnName, formula]) => {
+        console.log(`\n--- Testing formula: ${columnName} ---`);
+        console.log("Formula config:", formula);
+        
+        if (formula.type === 'custom_average' && formula.columns) {
+          console.log("Columns to average:", formula.columns);
+          
+          // Test with first data row
+          const testRow = data[0];
+          const values = formula.columns.map((col: string) => {
+            const value = testRow[col];
+            console.log(`  ${col}: ${value} (type: ${typeof value})`);
+            return value;
+          });
+          
+          const numericValues = values.filter((val: any) => typeof val === 'number' && !isNaN(val));
+          console.log("Numeric values found:", numericValues);
+          
+          const result = numericValues.length > 0 
+            ? numericValues.reduce((sum: number, val: number) => sum + val, 0) / numericValues.length 
+            : 0;
+          console.log("Calculated average:", result);
+        }
+      });
+    } else {
+      console.log("No calculated columns found!");
+    }
+  };
+
+  const calculateQuickFormulas = (data: any[]): any[] => {
+
+    console.log("🧮 calculateQuickFormulas called with:", {
+      dataLength: data.length,
+      calculatedColumnsCount: Object.keys(calculatedColumns).length,
+      calculatedColumns: calculatedColumns
+    });
+
+    if (Object.keys(calculatedColumns).length === 0) {
+      console.log("No calculated columns, returning original data");
+      return data;
+    }
+
+    const result = data.map((row, rowIndex) => {
+      const enhancedRow = { ...row };
+      
+      // Apply each calculated column
+      Object.entries(calculatedColumns).forEach(([columnName, formula]) => {
+        console.log(`Processing formula ${columnName} for row ${rowIndex}:`, formula);
+        
+        switch (formula.type) {
+          case 'custom_average':
+            if (!formula.columns || !Array.isArray(formula.columns)) {
+              console.error(`Invalid columns for ${columnName}:`, formula.columns);
+              enhancedRow[columnName] = 0;
+              break;
+            }
+            
+            const avgValues = formula.columns
+              .map((col: string) => {
+                const value = row[col];
+                console.log(`  Column ${col}: ${value} (type: ${typeof value})`);
+                return value;
+              })
+              .filter((val: any) => typeof val === 'number' && !isNaN(val));
+            
+            console.log(`  Numeric values for average:`, avgValues);
+            
+            enhancedRow[columnName] = avgValues.length > 0 
+              ? avgValues.reduce((sum: number, val: number) => sum + val, 0) / avgValues.length 
+              : 0;
+            
+            console.log(`  Result: ${enhancedRow[columnName]}`);
+            break;
+              
+          case 'custom_sum':
+            if (!formula.columns || !Array.isArray(formula.columns)) {
+              console.error(`Invalid columns for ${columnName}:`, formula.columns);
+              enhancedRow[columnName] = 0;
+              break;
+            }
+            
+            enhancedRow[columnName] = formula.columns
+              .reduce((sum: number, col: string) => {
+                const value = row[col] || 0;
+                console.log(`  Adding ${col}: ${value}`);
+                return sum + value;
+              }, 0);
+            
+            console.log(`  Sum result: ${enhancedRow[columnName]}`);
+            break;
+              
+          case 'average_selected':
+            const selectedValues = config.selectedColumns
+              .map(col => row[col])
+              .filter(val => typeof val === 'number' && !isNaN(val));
+            enhancedRow[columnName] = selectedValues.length > 0 
+              ? selectedValues.reduce((sum, val) => sum + val, 0) / selectedValues.length 
+              : 0;
+            break;
+              
+          case 'sum_selected':
+            enhancedRow[columnName] = config.selectedColumns
+              .reduce((sum, col) => sum + (row[col] || 0), 0);
+            break;
+              
+          case 'ratio':
+            const numerator = row[formula.column1] || 0;
+            const denominator = row[formula.column2] || 1;
+            enhancedRow[columnName] = denominator !== 0 ? numerator / denominator : 0;
+            console.log(`  Ratio: ${numerator}/${denominator} = ${enhancedRow[columnName]}`);
+            break;
+              
+          case 'percentage':
+            const part = row[formula.column1] || 0;
+            const total = row[formula.column2] || 1;
+            enhancedRow[columnName] = total !== 0 ? (part / total) * 100 : 0;
+            console.log(`  Percentage: (${part}/${total}) * 100 = ${enhancedRow[columnName]}`);
+            break;
+            
+          default:
+            console.warn(`Unknown formula type: ${formula.type}`);
+        }
+      });
+      
+      return enhancedRow;
+    });
+    
+    console.log("🧮 calculateQuickFormulas result sample:", result[0]);
+    return result;
+  };
+
+  const showColumnSelector = (message: string, columns: string[], allowMultiple: boolean): string[] | null => {
+    if (allowMultiple) {
+      // For multiple selection, use a simple prompt for now
+      const selection = prompt(
+        `${message}\n\nAvailable columns:\n${columns.map((col, i) => `${i + 1}. ${col}`).join('\n')}\n\nEnter numbers separated by commas (e.g., "1,3,5"):`
+      );
+      
+      if (!selection) return null;
+      
+      const indices = selection.split(',')
+        .map(s => parseInt(s.trim()) - 1)
+        .filter(i => i >= 0 && i < columns.length);
+      
+      return indices.map(i => columns[i]);
+    } else {
+      // For single selection
+      const selection = prompt(
+        `${message}\n\nAvailable columns:\n${columns.map((col, i) => `${i + 1}. ${col}`).join('\n')}\n\nEnter the number:`
+      );
+      
+      if (!selection) return null;
+      
+      const index = parseInt(selection.trim()) - 1;
+      if (index >= 0 && index < columns.length) {
+        return [columns[index]];
+      }
+      
+      return null;
+    }
   };
 
   const isColumnCategorical = (data: any[], column: string): boolean => {
@@ -425,6 +650,12 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
   const processData = (rawData: any[]) => {
     console.log("processData - starting with raw data:", rawData.length, "rows");
     
+    console.log("🔍 Data Quality Check:");
+    console.log("- Total rows:", rawData.length);
+    console.log("- Non-empty rows:", rawData.filter(row => Object.values(row).some(val => val !== null && val !== '')).length);
+    console.log("- Sample row:", rawData[0]);
+    console.log("- Last row:", rawData[rawData.length - 1]);
+
     // Extract all available columns
     const columnsArray = Object.keys(rawData[0] || {});
     console.log("processData - available columns:", columnsArray);
@@ -555,6 +786,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     });
     
     console.log("processData - processed data sample:", processedData.slice(0, 2));
+    console.log("🔍 TEST - I AM HERE!");
     
     // Update config with determined defaults AND filter configs
     console.log("processData - setting new config:");
@@ -562,6 +794,12 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     console.log("- effectiveYColumns:", effectiveYColumns);
     console.log("- filterConfigs:", filterConfigs);
     
+    console.log("🔍 CALCULATED COLUMNS CHECK:", Object.keys(calculatedColumns));
+    const dataWithFormulas = calculateQuickFormulas(processedData);
+    const calculatedColumnNames = Object.keys(calculatedColumns);
+    const allColumns = [...columnsArray, ...calculatedColumnNames];
+    setAvailableColumns(allColumns);
+
     setConfig(prev => ({
       ...prev,
       selectedColumns: effectiveYColumns,
@@ -570,9 +808,19 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       filterConfigs: filterConfigs // This is critical - we need to set the filter configs
     }));
     
-    setData(processedData);
+    setData(dataWithFormulas);
     console.log("🔧 processData - setting loading to FALSE");
-    setLoading(false);
+
+    /*
+    The Loading Flow (State Management):
+      -Component starts: loading = true (spinner shows)
+      -Data fetches: CSV loads and gets processed
+      -Processing completes: setLoading(false) (spinner disappears)
+      -Chart renders: Your actual chart appears
+    */
+
+    // Component transitions from loading → showing chart
+    setLoading(false); // ← Tells React "data is ready, show the chart"
     
     console.log("🔧 processData - completed successfully");
     console.log("🔧 Final state should be:");
@@ -592,6 +840,143 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
   const shortenText = (text: string, maxLength = 20): string => {
     if (!text || text.length <= maxLength) return text;
     return text.substring(0, maxLength - 3) + '...';
+  };
+
+  const addQuickFormula = (type: string) => {
+    const numericColumns = availableColumns.filter(col => {
+      const normalizedCol = normalizeColumnName(col);
+      // Check if column has numeric data
+      const hasNumericData = data.some(row => {
+        const val = row[normalizedCol];
+        return typeof val === 'number' && !isNaN(val) && val !== 0;
+      });
+      return hasNumericData && normalizedCol !== config.xAxisColumn;
+    });
+    
+    if (numericColumns.length < 1) {
+      alert('Need at least 1 numeric column for calculations');
+      return;
+    }
+    
+    let columnName = '';
+    let formula: any = {};
+    
+    switch (type) {
+      case 'custom_average':
+        // Let user select specific columns for averaging
+        const avgColumns = showColumnSelector(
+          'Select columns to average:', 
+          numericColumns,
+          true // allow multiple selection
+        );
+        if (!avgColumns || avgColumns.length === 0) return;
+        
+        columnName = `avg_${avgColumns.join('_').replace(/\s+/g, '_')}`;
+        formula = { 
+          type: 'custom_average', 
+          name: `Avg of (${avgColumns.map(col => denormalizeColumnName(col)).join(', ')})`,
+          columns: avgColumns.map(col => normalizeColumnName(col))
+        };
+        break;
+        
+      case 'custom_sum':
+        // Let user select specific columns for summing
+        const sumColumns = showColumnSelector(
+          'Select columns to sum:', 
+          numericColumns,
+          true // allow multiple selection
+        );
+        if (!sumColumns || sumColumns.length === 0) return;
+        
+        columnName = `sum_${sumColumns.join('_').replace(/\s+/g, '_')}`;
+        formula = { 
+          type: 'custom_sum', 
+          name: `Sum of (${sumColumns.map(col => denormalizeColumnName(col)).join(', ')})`,
+          columns: sumColumns.map(col => normalizeColumnName(col))
+        };
+        break;
+        
+      case 'custom_ratio':
+        // Let user select numerator and denominator
+        const numeratorCol = showColumnSelector(
+          'Select numerator column:', 
+          numericColumns,
+          false // single selection
+        );
+        if (!numeratorCol || numeratorCol.length === 0) return;
+        
+        const denominatorCol = showColumnSelector(
+          'Select denominator column:', 
+          numericColumns.filter(col => col !== numeratorCol[0]),
+          false // single selection
+        );
+        if (!denominatorCol || denominatorCol.length === 0) return;
+        
+        columnName = `ratio_${numeratorCol[0]}_per_${denominatorCol[0]}`.replace(/\s+/g, '_');
+        formula = { 
+          type: 'ratio', 
+          name: `${denormalizeColumnName(numeratorCol[0])} ÷ ${denormalizeColumnName(denominatorCol[0])}`,
+          column1: normalizeColumnName(numeratorCol[0]),
+          column2: normalizeColumnName(denominatorCol[0])
+        };
+        break;
+        
+      case 'custom_percentage':
+        // Let user select part and total columns
+        const partCol = showColumnSelector(
+          'Select the "part" column:', 
+          numericColumns,
+          false // single selection
+        );
+        if (!partCol || partCol.length === 0) return;
+        
+        const totalCol = showColumnSelector(
+          'Select the "total" column:', 
+          numericColumns.filter(col => col !== partCol[0]),
+          false // single selection
+        );
+        if (!totalCol || totalCol.length === 0) return;
+        
+        columnName = `pct_${partCol[0]}_of_${totalCol[0]}`.replace(/\s+/g, '_');
+        formula = { 
+          type: 'percentage', 
+          name: `${denormalizeColumnName(partCol[0])} as % of ${denormalizeColumnName(totalCol[0])}`,
+          column1: normalizeColumnName(partCol[0]),
+          column2: normalizeColumnName(totalCol[0])
+        };
+        break;
+        
+      default:
+        return;
+    }
+    
+    // Add the calculated column
+    setCalculatedColumns(prev => ({
+      ...prev,
+      [columnName]: formula
+    }));
+    
+    // Trigger re-render
+    setConfig(prev => ({ ...prev }));
+  };
+
+  // remove formula if user deletes it
+  const removeCalculatedColumn = (columnName: string) => {
+    setCalculatedColumns(prev => {
+      const newCalc = { ...prev };
+      delete newCalc[columnName];
+      return newCalc;
+    });
+    
+    // Remove from selected columns if it was selected
+    updateConfig({
+      selectedColumns: config.selectedColumns.filter(col => col !== columnName)
+    });
+    
+    // Trigger data reprocessing
+    setTimeout(() => {
+      processData(rawData);
+    }, 100);
   };
   
   // Prepare chart data with filtering, grouping, and sorting
@@ -677,9 +1062,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     return result;
   };
   
-  // Prepare grouped data
   const prepareGroupedData = (filteredData: Record<string, any>[]) => {
     if (!config.groupByColumn) return filteredData;
+    
+    console.log("🔧 prepareGroupedData - starting with", filteredData.length, "rows");
     
     // Create groups
     const groups: Record<string, any> = {};
@@ -699,11 +1085,29 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         config.selectedColumns.forEach(col => {
           groups[groupKey][col] = 0;
         });
+        
+        // Initialize ALL available columns (not just selected ones)
+        // This ensures we have the base data for ratio calculations
+        availableColumns.forEach(column => {
+          const normalizedCol = normalizeColumnName(column);
+          if (!groups[groupKey][normalizedCol]) {
+            groups[groupKey][normalizedCol] = 0;
+          }
+        });
       }
       
-      // Add values from this row to the group
-      config.selectedColumns.forEach(col => {
-        groups[groupKey][col] += (row[col] || 0);
+      // Add values from this row to the group for ALL columns
+      availableColumns.forEach(column => {
+        const normalizedCol = normalizeColumnName(column);
+        const value = row[normalizedCol] || 0;
+        if (typeof value === 'number') {
+          groups[groupKey][normalizedCol] += value;
+        } else {
+          // For non-numeric values, just take the first one
+          if (!groups[groupKey][normalizedCol]) {
+            groups[groupKey][normalizedCol] = value;
+          }
+        }
       });
       
       groups[groupKey].count += 1;
@@ -712,20 +1116,87 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     // Convert groups object to array
     const groupedData = Object.values(groups);
     
-    console.log("prepareGroupedData - groups created:", groupedData.length);
+    console.log("🔧 prepareGroupedData - groups before ratio recalculation:");
+    groupedData.forEach(group => {
+      console.log(`  ${group.id}:`, {
+        revenue: group.revenue,
+        marketingspend: group.marketingspend,
+        count: group.count
+      });
+    });
+    
+    // RECALCULATE all calculated columns on the grouped data
+    const groupedDataWithCalculations = groupedData.map(group => {
+      const enhancedGroup = { ...group };
+      
+      // Apply each calculated column formula to the grouped data
+      Object.entries(calculatedColumns).forEach(([columnName, formula]) => {
+        console.log(`🔧 Recalculating ${columnName} for group ${group.id}`);
+        
+        switch (formula.type) {
+          case 'custom_average':
+            const avgValues = formula.columns
+              .map((col: string) => group[col])
+              .filter((val: any) => typeof val === 'number' && !isNaN(val));
+            enhancedGroup[columnName] = avgValues.length > 0 
+              ? avgValues.reduce((sum: number, val: number) => sum + val, 0) / avgValues.length 
+              : 0;
+            console.log(`  Custom average: ${formula.columns.join('+')} = ${enhancedGroup[columnName]}`);
+            break;
+              
+          case 'custom_sum':
+            enhancedGroup[columnName] = formula.columns
+              .reduce((sum: number, col: string) => sum + (group[col] || 0), 0);
+            console.log(`  Custom sum: ${formula.columns.join('+')} = ${enhancedGroup[columnName]}`);
+            break;
+              
+          case 'ratio':
+            const numerator = group[formula.column1] || 0;
+            const denominator = group[formula.column2] || 1;
+            enhancedGroup[columnName] = denominator !== 0 ? numerator / denominator : 0;
+            console.log(`  Ratio: ${numerator} / ${denominator} = ${enhancedGroup[columnName]}`);
+            console.log(`  Formula details: column1=${formula.column1}, column2=${formula.column2}`);
+            break;
+              
+          case 'percentage':
+            const part = group[formula.column1] || 0;
+            const total = group[formula.column2] || 1;
+            enhancedGroup[columnName] = total !== 0 ? (part / total) * 100 : 0;
+            console.log(`  Percentage: (${part} / ${total}) * 100 = ${enhancedGroup[columnName]}`);
+            break;
+        }
+      });
+      
+      return enhancedGroup;
+    });
+    
+    console.log("🔧 prepareGroupedData - groups after ratio recalculation:");
+    groupedDataWithCalculations.forEach(group => {
+      const ratioColumns = Object.keys(calculatedColumns);
+      const ratioValues = ratioColumns.reduce((acc, col) => {
+        acc[col] = group[col];
+        return acc;
+      }, {} as Record<string, any>);
+      
+      console.log(`🔧 ${group.id}:`, {
+        revenue: group.revenue,
+        marketingspend: group.marketingspend,
+        count: group.count,
+        calculatedColumns: ratioValues
+      });
+    });
     
     // Sort grouped data
     if (config.sortBy === 'count') {
-      groupedData.sort((a, b) => b.count - a.count);
+      groupedDataWithCalculations.sort((a, b) => b.count - a.count);
     } else if (config.selectedColumns.includes(config.sortBy)) {
-      groupedData.sort((a, b) => b[config.sortBy] - a[config.sortBy]);
+      groupedDataWithCalculations.sort((a, b) => b[config.sortBy] - a[config.sortBy]);
     } else {
-      groupedData.sort((a, b) => String(a[config.xAxisColumn]).localeCompare(String(b[config.xAxisColumn])));
+      groupedDataWithCalculations.sort((a, b) => String(a[config.xAxisColumn]).localeCompare(String(b[config.xAxisColumn])));
     }
     
-    // Apply display limit to grouped data
-    const limitedGroupedData = groupedData.slice(0, config.displayCount);
-    console.log("prepareGroupedData - after limit:", limitedGroupedData.length, "groups (limit:", config.displayCount, ")");
+    const limitedGroupedData = groupedDataWithCalculations.slice(0, config.displayCount);
+    console.log("🔧 prepareGroupedData - final result:", limitedGroupedData.length, "groups");
     
     return limitedGroupedData;
   };
@@ -746,10 +1217,15 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     return colorScheme[index % colorScheme.length];
   };
   
-  // Custom tooltip
   const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      
+      console.log("🔍 TOOLTIP DEBUG:", {
+        selectedColumns: config.selectedColumns,
+        dataKeys: Object.keys(data),
+        dataValues: data
+      });
       
       return (
         <div style={{ 
@@ -764,11 +1240,43 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
               ? data[config.xAxisColumn].toFixed(2) 
               : data[config.xAxisColumn]}
           </p>
-          {config.selectedColumns.map(column => (
-            <p key={column} style={{ margin: 0 }}>
-              {denormalizeColumnName(column)}: {typeof data[column] === 'number' ? data[column].toFixed(2) : data[column]}
-            </p>
-          ))}
+          {config.selectedColumns.map(column => {
+            // Try to find the value in the data object
+            let value = data[column];
+            
+            // If not found, try to find it with different case variations
+            if (value === undefined) {
+              const dataKeys = Object.keys(data);
+              const matchingKey = dataKeys.find(key => 
+                key.toLowerCase() === column.toLowerCase()
+              );
+              if (matchingKey) {
+                value = data[matchingKey];
+              }
+            }
+            
+            // If still not found, look for calculated columns
+            if (value === undefined) {
+              // Look for calculated column variations
+              const calculatedKeys = Object.keys(calculatedColumns);
+              const matchingCalcKey = calculatedKeys.find(calcKey => 
+                normalizeColumnName(calcKey) === column
+              );
+              if (matchingCalcKey) {
+                value = data[matchingCalcKey];
+              }
+            }
+            
+            return (
+              <p key={column} style={{ margin: 0 }}>
+                {denormalizeColumnName(column)}: {
+                  value !== undefined 
+                    ? (typeof value === 'number' ? value.toFixed(2) : value)
+                    : 'N/A'
+                }
+              </p>
+            );
+          })}
           {data.count !== undefined && (
             <p style={{ margin: 0 }}>Count: {data.count}</p>
           )}
@@ -1142,6 +1650,111 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         travellerWidth={8}
       />
     );
+  };
+
+  const QuickFormulas = () => {
+    return (
+      <div style={{ 
+        marginTop: '15px', 
+        padding: '12px', 
+        border: '1px solid #ddd', 
+        borderRadius: '5px',
+        backgroundColor: '#f9f9f9'
+      }}>
+        <h4 style={{ margin: '0 0 10px 0', fontSize: '14px' }}>Quick Formulas</h4>
+        
+        {/* Show existing calculated columns */}
+        {Object.keys(calculatedColumns).length > 0 && (
+          <div style={{ marginBottom: '10px' }}>
+            {Object.entries(calculatedColumns).map(([columnName, formula]) => (
+              <div key={columnName} style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                padding: '4px 8px',
+                backgroundColor: '#e6f3ff',
+                borderRadius: '3px',
+                marginBottom: '4px',
+                fontSize: '12px'
+              }}>
+                <span><strong>{formula.name}</strong></span>
+                <button 
+                  onClick={() => removeCalculatedColumn(columnName)}
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    color: 'red', 
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Enhanced formula buttons */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button 
+            onClick={() => addQuickFormula('custom_average')}
+            style={quickButtonStyle}
+            title="Create average of selected columns"
+          >
+            📊 Custom Average
+          </button>
+          
+          <button 
+            onClick={() => addQuickFormula('custom_sum')}
+            style={quickButtonStyle}
+            title="Create sum of selected columns"
+          >
+            ➕ Custom Sum
+          </button>
+          
+          <button 
+            onClick={() => addQuickFormula('custom_ratio')}
+            style={quickButtonStyle}
+            title="Create ratio between two columns"
+          >
+            ➗ Custom Ratio
+          </button>
+          
+          <button 
+            onClick={() => addQuickFormula('custom_percentage')}
+            style={quickButtonStyle}
+            title="Create percentage calculation"
+          >
+            📈 Custom %
+          </button>
+          
+          {/* DEBUGGING BUTTONS: */}
+          <DebugButton />
+          <DebugChartDataButton />
+
+        </div>
+        
+        <div style={{ 
+          marginTop: '8px', 
+          fontSize: '11px', 
+          color: '#666',
+          fontStyle: 'italic'
+        }}>
+          Click buttons to create calculated columns. You'll be prompted to select specific columns for each calculation.
+        </div>
+      </div>
+    );
+  };
+
+  const quickButtonStyle = {
+    padding: '6px 10px',
+    fontSize: '11px',
+    backgroundColor: '#e3f2fd',
+    border: '1px solid #2196f3',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s'
   };
 
   // Chart rendering function 
@@ -1559,6 +2172,48 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     }
     
     if (config.chartType === 'composed' && config.secondaryAxis) {
+      // Helper function to find actual data key
+      const findDataKey = (normalizedKey: string, sampleData: any): string => {
+        // First try exact match
+        if (sampleData[normalizedKey] !== undefined) {
+          return normalizedKey;
+        }
+        
+        // Try case-insensitive search
+        const dataKeys = Object.keys(sampleData);
+        const matchingKey = dataKeys.find(key => 
+          key.toLowerCase() === normalizedKey.toLowerCase()
+        );
+        
+        if (matchingKey) {
+          console.log(`🔧 Found data key '${matchingKey}' for normalized key '${normalizedKey}'`);
+          return matchingKey;
+        }
+        
+        // Try looking in calculated columns
+        const calculatedKeys = Object.keys(calculatedColumns);
+        const matchingCalcKey = calculatedKeys.find(calcKey => 
+          normalizeColumnName(calcKey) === normalizedKey
+        );
+        
+        if (matchingCalcKey) {
+          console.log(`🔧 Found calculated key '${matchingCalcKey}' for normalized key '${normalizedKey}'`);
+          return matchingCalcKey;
+        }
+        
+        console.warn(`⚠️ Could not find data key for '${normalizedKey}'`);
+        return normalizedKey; // fallback
+      };
+
+      const actualSecondaryKey = findDataKey(config.secondaryAxis, chartData[0]);
+      
+      console.log(`🔧 Composed Chart Debug:`, {
+        secondaryAxis: config.secondaryAxis,
+        actualSecondaryKey: actualSecondaryKey,
+        sampleValue: chartData[0]?.[actualSecondaryKey],
+        availableKeys: Object.keys(chartData[0] || {})
+      });
+
       return (
         <ComposedChart
           key={`${chartKey}-${chartTypeKey}`}
@@ -1578,48 +2233,50 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             name={denormalizeColumnName(config.xAxisColumn)}
           />
           <YAxis 
-              key={`yaxis-${chartKey}-${chartTypeKey}`}
-              yAxisId="left" 
-              label={{ 
-                value: denormalizeColumnName(config.selectedColumns[0]), 
-                angle: -90, 
-                position: 'left', // if left is too extreme, use insideLeft with offset: 20 as a separate attribute
-                offset: 20,
-                style: { textAnchor: 'middle' }
-              }}
+            key={`yaxis-left-${chartKey}-${chartTypeKey}`}
+            yAxisId="left" 
+            label={{ 
+              value: denormalizeColumnName(config.selectedColumns[0]), 
+              angle: -90, 
+              position: 'left',
+              offset: 20,
+              style: { textAnchor: 'middle' }
+            }}
           />
           <YAxis 
-              key={`yaxis-${chartKey}-${chartTypeKey}`}
-              yAxisId="right" orientation="right"
-              label={{ 
-                value: denormalizeColumnName(config.secondaryAxis), 
-                angle: 90, 
-                position: 'right',
-                //offset: -20,
-                style: { textAnchor: 'middle' }
-              }}
+            key={`yaxis-right-${chartKey}-${chartTypeKey}`}
+            yAxisId="right" 
+            orientation="right"
+            label={{ 
+              value: denormalizeColumnName(config.secondaryAxis), 
+              angle: 90, 
+              position: 'right',
+              style: { textAnchor: 'middle' }
+            }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
           {config.selectedColumns.map((column, index) => {
+            const actualDataKey = findDataKey(column, chartData[0]);
+            
             // Primary column as bars
             if (column === config.selectedColumns[0]) {
               return (
                 <Bar 
                   key={column} 
-                  dataKey={column} 
+                  dataKey={actualDataKey} 
                   name={denormalizeColumnName(column)} 
                   fill={getColumnColor(column, index)} 
                   yAxisId="left"
                 />
               );
             } else if (column === config.secondaryAxis) {
-              // Secondary axis as line
+              // Secondary axis as line - use the actual data key
               return (
                 <Line 
                   key={column}
                   type="monotone"
-                  dataKey={column} 
+                  dataKey={actualSecondaryKey}  // ← Use the resolved key
                   name={denormalizeColumnName(column)} 
                   stroke={getColumnColor(column, index)} 
                   yAxisId="right"
@@ -1697,6 +2354,12 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
   }, [loading]);
   
   useEffect(() => {
+    if (rawData.length > 0 && Object.keys(calculatedColumns).length > 0) {
+      processData(rawData);
+    }
+  }, [calculatedColumns]); // Reprocess when calculated columns change
+
+  useEffect(() => {
     console.log("🔄 useEffect triggered - data changed, length:", data.length);
   }, [data]);
   
@@ -1763,8 +2426,25 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       key={`chart-${availableColumns.join('-')}-${config.selectedColumns.join('-')}`} 
       style={{ fontFamily: 'Arial, sans-serif', maxWidth: '1200px', margin: '0 auto' }}
     >
-      <h2>{title}</h2>
-      
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '12px', 
+        marginBottom: '20px',
+        padding: '10px 0'
+      }}>
+        <img 
+          src="/inventica_icon.svg" 
+          alt="Inventica Logo" 
+          style={{ 
+            height: '60px', 
+            width: 'auto',
+            objectFit: 'contain'
+          }} 
+        />
+        <h2 style={{ margin: 0, fontSize: '24px' }}>{title}</h2>
+      </div>
+
       {/* File Upload Area */}
       {enableFileUpload && (
         <div 
@@ -1942,6 +2622,8 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
           </div>
         </div>
         
+        <QuickFormulas />
+
         {/* Sort & Group Options */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
           {/* Group By */}
@@ -2207,7 +2889,11 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
           <li><strong>Data export</strong>: Export filtered data to CSV for further analysis</li>
           <li><strong>Statistics summary</strong>: View key statistics for each column in your dataset</li>
           <li><strong>File upload support</strong>: Drag and drop CSV files for instant visualization</li>
+        </ul>
+        <h3 style={{ margin: '0 0 10px 0' }}>Usage Notes</h3>
+        <ul style={{ paddingLeft: '20px' }}>
           <li><strong>Scatter Plots</strong>: Can be tricky to use. Remember they always compare two metrics to show the correlation between them</li>
+          <li><strong>Recommended Workflow</strong>: Though I added functions to the tool to try them out, the ideal workflow is <i>data prep in Excel, visualization in DataViz</i></li>
         </ul>
       </div>
     </div>

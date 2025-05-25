@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="3000"
+   height="3000"
+   viewBox="0 0 3000 3000"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.2 (ebf0e940, 2025-05-08)"
+   sodipodi:docname="inventica_icon.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     inkscape:zoom="0.05078125"
+     inkscape:cx="1526.1538"
+     inkscape:cy="2461.5385"
+     inkscape:window-width="1680"
+     inkscape:window-height="997"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1">
+    <rect
+       x="649.84613"
+       y="787.69232"
+       width="925.53845"
+       height="866.46155"
+       id="rect4" />
+    <rect
+       x="531.69232"
+       y="708.9231"
+       width="905.84613"
+       height="925.53845"
+       id="rect3" />
+    <rect
+       x="649.84613"
+       y="728.61536"
+       width="827.0769"
+       height="748.30768"
+       id="rect2" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#4682b4;fill-opacity:1;stroke-width:0.57089"
+       id="rect1"
+       width="758.84625"
+       height="1245.7894"
+       x="1669.764"
+       y="-2570.3481"
+       transform="matrix(0.9998472,-0.01748084,0.30511629,-0.9523151,0,0)" />
+    <ellipse
+       style="fill:#4682b4;fill-opacity:1;stroke-width:1.99913"
+       id="path2"
+       cx="1624.6154"
+       cy="817.23077"
+       rx="344.61539"
+       ry="324.92307" />
+    <ellipse
+       style="opacity:0.5;fill:none;fill-opacity:1;stroke:#4682b4;stroke-width:182.808;stroke-dasharray:1462.46, 182.808;stroke-dashoffset:0;stroke-opacity:1"
+       id="path2-8"
+       cx="1535.6178"
+       cy="1536.384"
+       rx="1223.4396"
+       ry="1223.4387" />
+    <text
+       xml:space="preserve"
+       id="text2"
+       style="text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect2);display:inline;fill:#4682b4;fill-opacity:1"
+       transform="translate(433.23077,433.23077)" />
+    <text
+       xml:space="preserve"
+       id="text3"
+       style="text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect3);display:inline;fill:#4682b4;fill-opacity:1"
+       transform="translate(433.23077,433.23077)"><tspan
+         x="531.69141"
+         y="719.87179"
+         id="tspan4">i</tspan></text>
+    <text
+       xml:space="preserve"
+       id="text4"
+       style="text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect4);display:inline;fill:#4682b4;fill-opacity:1"
+       transform="translate(433.23077,433.23077)"><tspan
+         x="649.8457"
+         y="798.63937"
+         id="tspan7">i</tspan></text>
+    <text
+       xml:space="preserve"
+       style="text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#4682b4;fill-opacity:1"
+       x="1299.6923"
+       y="1457.2308"
+       id="text5"><tspan
+         sodipodi:role="line"
+         id="tspan5"
+         x="1299.6923"
+         y="1457.2308">i</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:454;font-stretch:normal;font-size:60.7898px;font-family:'.CJK Symbols Fallback Watch HK';-inkscape-font-specification:'.CJK Symbols Fallback Watch HK weight=454';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#4682b4;stroke-width:5.06581"
+       x="5885.6953"
+       y="272.11066"
+       id="text6"
+       transform="scale(0.19740169,5.0658127)"><tspan
+         sodipodi:role="line"
+         id="tspan3"
+         x="5885.6953"
+         y="272.11066"
+         style="stroke-width:5.06581">i</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:454;font-stretch:normal;font-family:'.CJK Symbols Fallback Watch HK';-inkscape-font-specification:'.CJK Symbols Fallback Watch HK weight=454';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#4682b4"
+       x="1280"
+       y="1299.6924"
+       id="text7"><tspan
+         sodipodi:role="line"
+         id="tspan6"
+         x="1280"
+         y="1299.6924"></tspan></text>
+  </g>
+</svg>

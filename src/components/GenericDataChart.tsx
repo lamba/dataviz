@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef, DragEvent } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
   ResponsiveContainer, Brush, LineChart, Line, AreaChart, Area,
-  ScatterChart, Scatter, ZAxis, ComposedChart
+  ScatterChart, Scatter, ZAxis, ComposedChart, ReferenceLine
 } from 'recharts';
 import Papa from 'papaparse';
 import packageJson from '../../package.json';
@@ -1940,6 +1940,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     
     const isNumericXAxis = chartData.length > 0 && typeof (chartData[0] as any)[config.xAxisColumn] === 'number';
     
+    /***************
+     * STACKED 100 *
+     ***************/
+
     if (config.chartType === 'stackedBar100') {
       // Calculate percentage data for 100% stacked bars
       const percentageData = chartData.map(row => {
@@ -2027,6 +2031,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       );
     }
     
+    /***********
+     * STACKED *
+     ***********/
+
     // This is the default chart the app loads with
     if (config.chartType === 'stackedBar') {
       return (
@@ -2076,6 +2084,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       );
     } 
     
+    /***********
+     * GROUPED *
+     ***********/
+
     if (config.chartType === 'groupedBar') {
       return (
         <BarChart
@@ -2120,6 +2132,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         </BarChart>
       );
     }
+
+    /********
+     * LINE *
+     ********/
     
     if (config.chartType === 'line') {
       return (
@@ -2166,6 +2182,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         </LineChart>
       );
     }
+
+    /********
+     * AREA *
+     ********/
     
     if (config.chartType === 'area') {
       return (
@@ -2217,70 +2237,161 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     console.log("Chart type:", config.chartType);
     console.log("Secondary axis:", config.secondaryAxis);
     
-    if (config.chartType === 'scatter') {
-      
-      console.log("Rendering scatter chart - X:", config.xAxisColumn, "Y:", config.secondaryAxis);
-      console.log("Scatter data sample:", chartData.slice(0, 2));
-      
-      // Auto-select secondary axis if not already set
-      const effectiveSecondaryAxis = config.secondaryAxis || 
-      (config.selectedColumns.length > 0 ? config.selectedColumns[0] : null);
+    /***********
+     * SCATTER *
+     ***********/
 
-      if (!effectiveSecondaryAxis) {
+    if (config.chartType === 'scatter') {
+      // Find the best 2 numeric columns  
+      const numericColumns = config.selectedColumns.filter(col => {
+        const hasNumericData = chartData.some(row => {
+          const val = (row as any)[col];
+          return typeof val === 'number' && !isNaN(val);
+        });
+        return hasNumericData;
+      });
+      
+      if (numericColumns.length < 2) {
         return (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
             <div style={{ textAlign: 'center' }}>
-              <h3>Scatter Plot Setup Required</h3>
-              <p>Please select a Y-Axis column for the scatter plot</p>
-              <p>Available numeric columns: {config.selectedColumns.map(col => denormalizeColumnName(col)).join(', ')}</p>
+              <h3>📊 Scatter Plot Needs 2 Numeric Columns</h3>
+              <p>Found: {numericColumns.length} numeric columns</p>
+              <p>Please select 2+ numeric columns like Revenue, Units Sold, etc.</p>
+            </div>
+          </div>
+        );
+      }
+      
+      // Use first 2 numeric columns
+      const xAxisColumn = numericColumns[0];
+      const yAxisColumn = config.secondaryAxis && numericColumns.includes(config.secondaryAxis) 
+        ? config.secondaryAxis 
+        : numericColumns[1];
+      
+      // Prepare scatter data exactly like your other charts prepare data
+      const scatterData = chartData.map((row, index) => {
+        const originalRow = row as any;
+        const xVal = originalRow[xAxisColumn];
+        const yVal = originalRow[yAxisColumn];
+        
+        // Only include valid numeric points
+        if (typeof xVal === 'number' && typeof yVal === 'number' && !isNaN(xVal) && !isNaN(yVal)) {
+          return {
+            ...originalRow,
+            // Keep original column names for consistency
+            [xAxisColumn]: xVal,
+            [yAxisColumn]: yVal
+          };
+        }
+        return null;
+      }).filter(row => row !== null);
+
+      if (scatterData.length === 0) {
+        return (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
+            <div style={{ textAlign: 'center' }}>
+              <h3>❌ No Valid Data Points</h3>
+              <p>No numeric data found for correlation analysis.</p>
             </div>
           </div>
         );
       }
 
+      // Use your existing color system
+      const yAxisColumnIndex = config.selectedColumns.indexOf(yAxisColumn);
+      const dotColor = getColumnColor(yAxisColumn, yAxisColumnIndex);
+
+      // Simple tooltip using your existing CustomTooltip pattern
+      const ScatterTooltip = ({ active, payload }: any) => {
+        if (active && payload && payload.length) {
+          const data = payload[0].payload;
+          
+          return (
+            <div style={{ 
+              backgroundColor: '#fff', 
+              padding: '10px', 
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+            }}>
+              <p style={{ margin: 0, fontWeight: 'bold' }}>
+                📊 Data Point
+              </p>
+              <p style={{ margin: 0 }}>
+                <strong>{denormalizeColumnName(xAxisColumn)}:</strong> {
+                  typeof data[xAxisColumn] === 'number' 
+                    ? data[xAxisColumn].toLocaleString() 
+                    : data[xAxisColumn]
+                }
+              </p>
+              <p style={{ margin: 0 }}>
+                <strong>{denormalizeColumnName(yAxisColumn)}:</strong> {
+                  typeof data[yAxisColumn] === 'number' 
+                    ? data[yAxisColumn].toLocaleString() 
+                    : data[yAxisColumn]
+                }
+              </p>
+            </div>
+          );
+        }
+        return null;
+      };
+
+      console.log('🎯 Scatter rendering with data:', scatterData.length, 'points');
+      console.log('🎯 X-axis:', xAxisColumn, 'Y-axis:', yAxisColumn);
+      console.log('🎯 Dot color:', dotColor);
+
+      // Use the EXACT same pattern as your BarChart
       return (
         <ScatterChart
           key={`${chartKey}-${chartTypeKey}`}
-          width={800}
-          height={400}
-          data={chartData}
+          data={scatterData}
           margin={getMargins()}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
-            key={`${chartKey}-${chartTypeKey}`}
+            key={`xaxis-${chartKey}-${chartTypeKey}`}
             type="number" 
-            dataKey={config.xAxisColumn}
-            name={denormalizeColumnName(config.xAxisColumn)} 
-            domain={['dataMin', 'dataMax']}
+            dataKey={xAxisColumn}
+            name={denormalizeColumnName(xAxisColumn)} 
+            label={{ 
+              value: denormalizeColumnName(xAxisColumn), 
+              position: 'insideBottom', 
+              offset: -10,
+              style: { textAnchor: 'middle' }
+            }}
+            tick={{ fontSize: 12 }}
           />
           <YAxis 
             key={`yaxis-${chartKey}-${chartTypeKey}`}
             type="number" 
-            dataKey={effectiveSecondaryAxis} 
-            name={denormalizeColumnName(effectiveSecondaryAxis)} 
-            domain={['dataMin', 'dataMax']}
+            dataKey={yAxisColumn} 
+            name={denormalizeColumnName(yAxisColumn)} 
             label={{ 
-              value: denormalizeColumnName(effectiveSecondaryAxis), 
+              value: denormalizeColumnName(yAxisColumn), 
               angle: -90, 
               position: 'left',
               offset: 20,
               style: { textAnchor: 'middle' }
-            }}          
+            }}
+            tick={{ fontSize: 12 }}
           />
-          <ZAxis dataKey="id" range={[50, 50]} />
-          <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
-          {/* Legend removed - using custom legend below chart */}
+          <Tooltip content={<ScatterTooltip />} />
           <Scatter 
             key={`${chartKey}-${chartTypeKey}-scatter-points`}
-            name={`${denormalizeColumnName(config.xAxisColumn)} vs ${denormalizeColumnName(effectiveSecondaryAxis)}`} 
-            data={chartData}
-            fill="#8884d8"
+            name={`${denormalizeColumnName(xAxisColumn)} vs ${denormalizeColumnName(yAxisColumn)}`} 
+            data={scatterData}
+            fill={dotColor}
           />
         </ScatterChart>
       );
     }
     
+    /************
+     * COMPOSED *
+     ************/
+
     if (config.chartType === 'composed' && config.secondaryAxis) {
       // Helper function to find actual data key
       const findDataKey = (normalizedKey: string, sampleData: any): string => {
@@ -2404,8 +2515,11 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         </ComposedChart>
       );
     }
+
+    /************
+     * FALLBACK *
+     ************/
     
-    // Default fallback
     return (
       <BarChart
         key={`${chartKey}-${chartTypeKey}`}

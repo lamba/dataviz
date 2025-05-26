@@ -22,6 +22,15 @@ const generateChartKey = (): string => {
   return `chart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
+/************
+ * INTERFACES
+ * **********/
+
+interface GuidanceMessageProps {
+  type: string;
+  details: string;
+}
+
 // Column statistics interface
 interface ColumnStats {
   min: number;
@@ -244,6 +253,22 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
   /*****************************
    * COMPONENT FUNCTIONS - OTHER
   ******************************/
+
+  const GuidanceMessage: React.FC<GuidanceMessageProps> = ({ type, details }) => (
+    <div style={{
+      margin: '10px 0',
+      padding: '12px',
+      backgroundColor: '#fff3cd',
+      border: '1px solid #ffeaa7',
+      borderRadius: '4px',
+      color: '#856404'
+    }}>
+      <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+        ⚠️ Setup Guidance
+      </div>
+      <div>{details}</div>
+    </div>
+  );
 
   const sortData = (data: any[], sortBy: string, xAxisColumn: string) => {
     return [...data].sort((a: any, b: any) => {
@@ -2250,6 +2275,17 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         });
         return hasNumericData;
       });
+
+      console.log("🎯 SCATTER DEBUG:");
+      console.log("config.selectedColumns:", config.selectedColumns);
+      console.log("numericColumns found:", numericColumns);
+      console.log("sample chartData[0]:", chartData[0]);
+      
+      // Check each selected column
+      config.selectedColumns.forEach(col => {
+        const sampleVal = chartData[0] ? (chartData[0] as any)[col] : 'no data';
+        console.log(`Column '${col}': sample value = ${sampleVal} (type: ${typeof sampleVal})`);
+      });
       
       if (numericColumns.length < 2) {
         return (
@@ -2261,14 +2297,22 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             </div>
           </div>
         );
-      }
+      } 
       
       // Use first 2 numeric columns
       const xAxisColumn = numericColumns[0];
       const yAxisColumn = config.secondaryAxis && numericColumns.includes(config.secondaryAxis) 
         ? config.secondaryAxis 
         : numericColumns[1];
+
+      const isUsingAssumedColumns = !config.secondaryAxis || 
+        config.selectedColumns.length > 2;
       
+      if (isUsingAssumedColumns) {
+        // Show guidance message above the chart
+        <GuidanceMessage type="scatter" details="Setup required. X and Y axes should be assigned numeric columns." />
+      }
+
       // Prepare scatter data exactly like your other charts prepare data
       const scatterData = chartData.map((row, index) => {
         const originalRow = row as any;
@@ -2387,7 +2431,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         </ScatterChart>
       );
     }
-    
+      
     /************
      * COMPOSED *
      ************/
@@ -3002,9 +3046,29 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
                 {renderChart()}
               </ResponsiveContainer>
             </div>
+
             <div style={{ textAlign: 'center', padding: '8px', fontSize: '16px', color: '#666' }}>
-              X-Axis: {denormalizeColumnName(config.xAxisColumn)}
+              {config.chartType === 'scatter' ? (
+                (() => {
+                  const numericColumns = config.selectedColumns.filter(col => {
+                    const hasNumericData = data.some(row => {
+                      const val = row[col];
+                      return typeof val === 'number' && !isNaN(val);
+                    });
+                    return hasNumericData;
+                  });
+                  
+                  if (numericColumns.length >= 2) {
+                    const xCol = numericColumns[0];
+                    return `X-Axis: ${denormalizeColumnName(xCol)}`;
+                  }
+                  return 'X-Axis: Scatter Plot';
+                })()
+              ) : (
+                `X-Axis: ${denormalizeColumnName(config.xAxisColumn)}`
+              )}
             </div>
+
           </div>
 
         </div>

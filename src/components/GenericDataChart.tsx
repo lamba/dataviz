@@ -1947,9 +1947,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       plugins: {
         legend: {
           position: 'top' as const,
+          display: false,
         },
         title: {
-          display: true,
+          display: false,
           text: config.groupByColumn 
             ? `Aggregated Percentages (Grouped by ${denormalizeColumnName(config.groupByColumn)})`
             : 'Percentage Distribution',
@@ -2017,9 +2018,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       plugins: {
         legend: {
           position: 'top' as const,
+          display: false,
         },
         title: {
-          display: true,
+          display: false,
           text: config.groupByColumn 
             ? `Grouped Values by ${denormalizeColumnName(config.groupByColumn)}`
             : 'Grouped Values',
@@ -2092,9 +2094,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       plugins: {
         legend: {
           position: 'top' as const,
+          display: false,
         },
         title: {
-          display: true,
+          display: false,
           text: config.groupByColumn 
             ? `Stacked Values by ${denormalizeColumnName(config.groupByColumn)}`
             : 'Stacked Values',

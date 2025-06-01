@@ -19,6 +19,7 @@
 <li>1.6.1. <a href="#current-implementation-for-horizontal-orientation">Current Implementation for horizontal orientation:</a></li>
 <li>1.6.2. <a href="#the-issue">The Issue:</a></li>
 </ul>
+<li>1.7. <a href="#v1-1-2">v1.1.2</a></li>
 </ul>
 </ul>
 <!-- /TOC -->
@@ -78,3 +79,5 @@
 ### The Issue:
 The problem occurs when switching between **different charting libraries** (Recharts ↔ Chart.js), not when staying within the same library. Recharts handles state changes cleanly, but Chart.js has canvas caching issues.
 
+## v1.1.2
+- Disabled redundant chart.js built-in legend at the top since the "selected columns" legend at the top is working fine for all charts

@@ -85,6 +85,7 @@ interface ChartConfig {
   secondaryAxis: string | null;
   xAxisColumn: string;
   isHorizontal?: boolean;
+  chartHeight?: number;
 }
 
 // Chart component props
@@ -200,7 +201,8 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     sortBy: defaultYColumns.length > 0 ? normalizeColumnName(defaultYColumns[0]) : 'id',
     displayCount: defaultDisplayCount,
     secondaryAxis: null,
-    xAxisColumn: defaultXAxis ? normalizeColumnName(defaultXAxis) : 'id'
+    xAxisColumn: defaultXAxis ? normalizeColumnName(defaultXAxis) : 'id',
+    chartHeight: 600
   });
   
   // Saved configurations
@@ -273,6 +275,37 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
   /*****************************
    * COMPONENT FUNCTIONS - OTHER
   ******************************/
+
+  const getOptimalChartHeight = (chartData: any[], isHorizontal: boolean, chartType: string) => {
+    if (!isHorizontal) {
+      return 500; // Keep default for vertical charts
+    }
+    
+    const dataCount = chartData.length;
+    const selectedColCount = config.selectedColumns.length;
+    
+    // Base calculations
+    let barHeight = 25;
+    let spacing = 8;
+    let padding = 150; // Increased padding for axes and labels
+    
+    // Adjust based on chart type
+    if (chartType === 'groupedBar') {
+      barHeight = 20;
+      spacing = selectedColCount * 25;
+    } else if (chartType === 'stackedBar100') {
+      barHeight = 30;
+    }
+    
+    const contentHeight = (dataCount * barHeight) + (dataCount * spacing);
+    const totalHeight = contentHeight + padding;
+    
+    // Set reasonable bounds
+    const minHeight = 400;
+    const maxHeight = 1200; // Fixed max to prevent overflow
+    
+    return Math.max(minHeight, Math.min(totalHeight, maxHeight));
+  };
 
   const GuidanceMessage: React.FC<GuidanceMessageProps> = ({ type, details }) => (
     <div style={{
@@ -1985,11 +2018,18 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       },
     };
 
+    const chartHeight = config.chartHeight || getOptimalChartHeight(chartData, true, 'stackedBar100');
+
     return (
-      <div style={{ height: '500px', width: '100%' }}>
-        <ChartJSBar data={data} options={options} />
+      <div style={{ height: `${chartHeight}px`, width: '100%', overflow: 'hidden' }}>
+        <ChartJSBar 
+          key={`horizontal-stacked-100-${chartKey}-${config.selectedColumns.join('-')}`}
+          data={data} 
+          options={options} 
+        />
       </div>
     );
+
   };
 
   const renderHorizontalGroupedBar = (chartData: any[]) => {
@@ -2059,8 +2099,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       },
     };
 
+    const chartHeight = config.chartHeight || getOptimalChartHeight(chartData, true, 'groupedBar');
+
     return (
-      <div style={{ height: '500px', width: '100%' }}>
+      <div style={{ height: `${chartHeight}px`, width: '100%' }}>
         <ChartJSBar 
           key={`horizontal-grouped-${chartKey}-${config.selectedColumns.join('-')}`}
           data={data} 
@@ -2133,8 +2175,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       },
     };
 
+    const chartHeight = config.chartHeight || getOptimalChartHeight(chartData, true, 'stackedBar');
+
     return (
-      <div style={{ height: '500px', width: '100%' }}>
+      <div style={{ height: `${chartHeight}px`, width: '100%' }}>
         <ChartJSBar 
           key={`horizontal-stacked-${chartKey}-${config.selectedColumns.join('-')}`}
           data={data} 
@@ -3083,6 +3127,37 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             </div>
           )}
           
+          {/************
+            CHART HEIGHT
+            ************/}
+
+          {(config.chartType === 'stackedBar' || config.chartType === 'stackedBar100' || config.chartType === 'groupedBar') && config.isHorizontal && (
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Chart Height:</label>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <select 
+                  value={config.chartHeight || 'auto'} 
+                  onChange={e => updateConfig({ 
+                    chartHeight: e.target.value === 'auto' ? undefined : parseInt(e.target.value) 
+                  })}
+                  style={{ padding: '6px 10px', borderRadius: '4px', border: '1px solid #ccc', minWidth: '140px' }}
+                >
+                  <option value="auto">Auto Height</option>
+                  <option value="400">Compact (400px)</option>
+                  <option value="600">Standard (600px)</option>
+                  <option value="800">Tall (800px)</option>
+                  <option value="1000">Very Tall (1000px)</option>
+                  <option value="1200">Extra Tall (1200px)</option>
+                </select>
+                {!config.chartHeight && (
+                  <span style={{ fontSize: '11px', color: '#666' }}>
+                    Auto: {getOptimalChartHeight(mainChartData, true, config.chartType)}px
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* X-Axis Selection */}
           <div>
             <label htmlFor="xAxisColumn" style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>X-Axis:</label>
@@ -3305,19 +3380,27 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         ref={chartRef}
         style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
         
-        {/* Main Chart */}
+        {/******************** 
+          MAIN CHART CONTAINER 
+          ********************/}
+
         <div 
           style={{ 
             flex: 1,
-            height: typeof height === 'number' ? `${height}px` : height,
+            minHeight: '400px', // Minimum height
+            maxHeight: config.isHorizontal && 
+              (config.chartType === 'stackedBar' || config.chartType === 'stackedBar100' || config.chartType === 'groupedBar')
+              ? `${(config.chartHeight || getOptimalChartHeight(mainChartData, true, config.chartType)) + 100}px`
+              : typeof height === 'number' ? `${height}px` : height,
             border: '1px solid #ddd', 
             borderRadius: '5px',
             padding: '10px',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            overflow: 'hidden' // Prevent overflow
           }}
         >
-
+        
           {/***************** 
             LEGEND AT THE TOP
           *******************/}
@@ -3330,8 +3413,17 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             </ResponsiveContainer>
           </div>*/}
 
-          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <div style={{ flex: 1 }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            height: '100%',
+            overflow: 'hidden' 
+          }}>
+            <div style={{ 
+              flex: 1,
+              minHeight: '300px',
+              overflow: 'hidden' 
+            }}>
               <ResponsiveContainer>
                 {renderChart()}
               </ResponsiveContainer>

@@ -20,6 +20,7 @@
 <li>1.6.2. <a href="#the-issue">The Issue:</a></li>
 </ul>
 <li>1.7. <a href="#v1-1-2">v1.1.2</a></li>
+<li>1.8. <a href="#v1-1-3">v1.1.3</a></li>
 </ul>
 </ul>
 <!-- /TOC -->
@@ -81,3 +82,6 @@ The problem occurs when switching between **different charting libraries** (Rech
 
 ## v1.1.2
 - Disabled redundant chart.js built-in legend at the top since the "selected columns" legend at the top is working fine for all charts
+
+## v1.1.3
+- Now that horizontal orientation makes the category labels more readable, it would be nice if they weren't so constrained on real-estate. Addressed that via options to control chart height

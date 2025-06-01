@@ -10,6 +10,25 @@ import {
 } from 'recharts';
 import Papa from 'papaparse';
 import packageJson from '../../package.json';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip as ChartTooltip,
+  Legend as ChartLegend,
+} from 'chart.js';
+import { Bar as ChartJSBar } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  ChartTooltip,
+  ChartLegend
+);
 
 const version = packageJson.version;
 
@@ -65,6 +84,7 @@ interface ChartConfig {
   displayCount: number;
   secondaryAxis: string | null;
   xAxisColumn: string;
+  isHorizontal?: boolean;
 }
 
 // Chart component props
@@ -1892,6 +1912,235 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     transition: 'background-color 0.2s'
   };
 
+  const renderHorizontalStackedBar100 = (chartData: any[]) => {
+    // Calculate percentage data for 100% stacked bars
+    const percentageData = chartData.map(row => {
+      const total = config.selectedColumns.reduce((sum, col) => sum + ((row as any)[col] || 0), 0);
+      const percentageRow = { ...row };
+      config.selectedColumns.forEach(col => {
+        (percentageRow as any)[col] = total > 0 ? (((row as any)[col] || 0) / total) * 100 : 0;
+      });
+      return percentageRow;
+    });
+
+    // Prepare data for Chart.js format
+    const labels = percentageData.map(row => String(row[config.xAxisColumn]));
+    
+    const datasets = config.selectedColumns.map((column, index) => ({
+      label: denormalizeColumnName(column),
+      data: percentageData.map(row => row[column] || 0),
+      backgroundColor: getColumnColor(column, index),
+      borderColor: getColumnColor(column, index),
+      borderWidth: 1,
+      stack: 'stack1', // This creates the stacking
+    }));
+
+    const data = {
+      labels,
+      datasets,
+    };
+
+    const options = {
+      indexAxis: 'y' as const, // This makes it horizontal!
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top' as const,
+        },
+        title: {
+          display: true,
+          text: config.groupByColumn 
+            ? `Aggregated Percentages (Grouped by ${denormalizeColumnName(config.groupByColumn)})`
+            : 'Percentage Distribution',
+        },
+        tooltip: {
+          callbacks: {
+            title: (context: any) => {
+              return `${denormalizeColumnName(config.xAxisColumn)}: ${context[0].label}`;
+            },
+            label: (context: any) => {
+              return `${context.dataset.label}: ${context.parsed.x.toFixed(1)}%`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          max: 100,
+          title: {
+            display: true,
+            text: 'Percentage (%)'
+          }
+        },
+        y: {
+          stacked: true,
+          title: {
+            display: true,
+            text: denormalizeColumnName(config.xAxisColumn)
+          }
+        },
+      },
+    };
+
+    return (
+      <div style={{ height: '500px', width: '100%' }}>
+        <ChartJSBar data={data} options={options} />
+      </div>
+    );
+  };
+
+  const renderHorizontalGroupedBar = (chartData: any[]) => {
+    // Prepare data for Chart.js format
+    const labels = chartData.map(row => String(row[config.xAxisColumn]));
+    
+    const datasets = config.selectedColumns.map((column, index) => ({
+      label: denormalizeColumnName(column),
+      data: chartData.map(row => row[column] || 0),
+      backgroundColor: getColumnColor(column, index),
+      borderColor: getColumnColor(column, index),
+      borderWidth: 1,
+      // CRITICAL: Remove any stack property - grouped bars should NOT stack
+      // stack: undefined, // Make sure no stacking
+    }));
+
+    const data = {
+      labels,
+      datasets,
+    };
+
+    const options = {
+      indexAxis: 'y' as const,
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top' as const,
+        },
+        title: {
+          display: true,
+          text: config.groupByColumn 
+            ? `Grouped Values by ${denormalizeColumnName(config.groupByColumn)}`
+            : 'Grouped Values',
+        },
+        tooltip: {
+          callbacks: {
+            title: (context: any) => {
+              return `${denormalizeColumnName(config.xAxisColumn)}: ${context[0].label}`;
+            },
+            label: (context: any) => {
+              return `${context.dataset.label}: ${context.parsed.x.toLocaleString()}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          // CRITICAL: No stacking for grouped bars
+          stacked: false,
+          title: {
+            display: true,
+            text: config.selectedColumns.length === 1 
+              ? denormalizeColumnName(config.selectedColumns[0])
+              : 'Values'
+          }
+        },
+        y: {
+          // CRITICAL: No stacking for grouped bars
+          stacked: false,
+          title: {
+            display: true,
+            text: denormalizeColumnName(config.xAxisColumn)
+          }
+        },
+      },
+    };
+
+    return (
+      <div style={{ height: '500px', width: '100%' }}>
+        <ChartJSBar 
+          key={`horizontal-grouped-${chartKey}-${config.selectedColumns.join('-')}`}
+          data={data} 
+          options={options} 
+        />
+      </div>
+    );
+  };
+
+  const renderHorizontalStackedBar = (chartData: any[]) => {
+    const labels = chartData.map(row => String(row[config.xAxisColumn]));
+    
+    const datasets = config.selectedColumns.map((column, index) => ({
+      label: denormalizeColumnName(column),
+      data: chartData.map(row => row[column] || 0),
+      backgroundColor: getColumnColor(column, index),
+      borderColor: getColumnColor(column, index),
+      borderWidth: 1,
+      stack: 'stack1', // Ensure stacking
+    }));
+
+    const data = {
+      labels,
+      datasets,
+    };
+
+    const options = {
+      indexAxis: 'y' as const,
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top' as const,
+        },
+        title: {
+          display: true,
+          text: config.groupByColumn 
+            ? `Stacked Values by ${denormalizeColumnName(config.groupByColumn)}`
+            : 'Stacked Values',
+        },
+        tooltip: {
+          callbacks: {
+            title: (context: any) => {
+              return `${denormalizeColumnName(config.xAxisColumn)}: ${context[0].label}`;
+            },
+            label: (context: any) => {
+              return `${context.dataset.label}: ${context.parsed.x.toLocaleString()}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true, // Enable stacking
+          title: {
+            display: true,
+            text: config.selectedColumns.length === 1 
+              ? denormalizeColumnName(config.selectedColumns[0])
+              : 'Values'
+          }
+        },
+        y: {
+          stacked: true, // Enable stacking
+          title: {
+            display: true,
+            text: denormalizeColumnName(config.xAxisColumn)
+          }
+        },
+      },
+    };
+
+    return (
+      <div style={{ height: '500px', width: '100%' }}>
+        <ChartJSBar 
+          key={`horizontal-stacked-${chartKey}-${config.selectedColumns.join('-')}`}
+          data={data} 
+          options={options} 
+        />
+      </div>
+    );
+  };
+
   // Chart rendering function 
   const renderChart = () => {
     console.log("renderChart - function called");
@@ -1970,6 +2219,9 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
      ***************/
 
     if (config.chartType === 'stackedBar100') {
+      if (config.isHorizontal) {
+        return renderHorizontalStackedBar100(chartData);
+      }
       // Calculate percentage data for 100% stacked bars
       const percentageData = chartData.map(row => {
         const total = config.selectedColumns.reduce((sum, col) => sum + ((row as any)[col] || 0), 0);
@@ -2062,6 +2314,12 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
 
     // This is the default chart the app loads with
     if (config.chartType === 'stackedBar') {
+      // Handle horizontal orientation with Chart.js
+      if (config.isHorizontal) {
+        return renderHorizontalStackedBar(chartData);
+      }
+      
+      // Keep vertical orientation with Recharts (your existing code)
       return (
         <BarChart
           key={`${chartKey}-${chartTypeKey}`}
@@ -2073,47 +2331,45 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             dataKey={config.xAxisColumn}
             angle={isNumericXAxis ? 0 : -45} 
             textAnchor={isNumericXAxis ? 'middle' : 'end'}
-            type={isNumericXAxis ? 'number' : 'category'}
             height={100} 
-            interval={isNumericXAxis ? 'preserveStartEnd' : 0}
+            interval={0}
             tick={{ fontSize: 12 }}
             tickFormatter={(value) => {
               const stringValue = String(value);
               return stringValue.length > 15 ? stringValue.substring(0, 15) + '...' : stringValue;
             }}
-            name={denormalizeColumnName(config.xAxisColumn)}
-         />
+          />
           <YAxis 
-            key={`yaxis-${chartKey}-${chartTypeKey}`}
             label={{ 
               value: config.groupByColumn ? getYAxisLabelForGrouped() : getYAxisLabel(), 
               angle: -90, 
               position: 'left',
               offset: 20,
               style: { textAnchor: 'middle' }
-            }}          
+            }}
           />
           <Tooltip content={<CustomTooltip />} />
-          {/* Custom Legend instead of Recharts Legend */}
           {config.selectedColumns.map((column, index) => (
             <Bar 
-              key={column} 
+              key={column}
               dataKey={column} 
               name={denormalizeColumnName(column)} 
               stackId="a" 
               fill={getColumnColor(column, index)} 
             />
           ))}
-          {/* Brush temporarily disabled due to label persistence issues */}
         </BarChart>
       );
-    } 
-    
+    }
+
     /***********
      * GROUPED *
      ***********/
 
     if (config.chartType === 'groupedBar') {
+      if (config.isHorizontal) {
+        return renderHorizontalGroupedBar(chartData);
+      }
       return (
         <BarChart
           key={`${chartKey}-${chartTypeKey}`}
@@ -2781,7 +3037,8 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         <h3 style={{ margin: '0 0 10px 0' }}>Chart Controls</h3>
         
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
-          {/* Chart Type Selection */}
+
+          {/* CHART TYPE SELECTION */}
           <div>
             <label htmlFor="chartType" style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Chart Type:</label>
             <select 
@@ -2795,6 +3052,33 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
               ))}
             </select>
           </div>
+
+          {/****************** 
+            ORIENTATION TOGGLE 
+            ******************/}
+
+          {(config.chartType === 'stackedBar' || config.chartType === 'stackedBar100' || config.chartType === 'groupedBar') && (
+
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Orientation:</label>
+              <button
+                onClick={() => updateConfig({ isHorizontal: !config.isHorizontal })}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '4px',
+                  border: '1px solid #ccc',
+                  backgroundColor: config.isHorizontal ? '#e3f2fd' : '#f5f5f5',
+                  color: config.isHorizontal ? '#1976d2' : '#333',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {config.isHorizontal ? '↔ Horizontal' : '↕ Vertical'}
+              </button>
+            </div>
+          )}
           
           {/* X-Axis Selection */}
           <div>
@@ -3030,7 +3314,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             flexDirection: 'column'
           }}
         >
-          {/* Legend at Top */}
+
+          {/***************** 
+            LEGEND AT THE TOP
+          *******************/}
           <CustomLegend />
           
           {/* Chart takes remaining space */}
@@ -3046,6 +3333,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
                 {renderChart()}
               </ResponsiveContainer>
             </div>
+
+            {/***********
+              AXIS LABELS
+              ***********/}
 
             <div style={{ textAlign: 'center', padding: '8px', fontSize: '16px', color: '#666' }}>
               {config.chartType === 'scatter' ? (
@@ -3065,9 +3356,27 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
                   return 'X-Axis: Scatter Plot';
                 })()
               ) : (
-                `X-Axis: ${denormalizeColumnName(config.xAxisColumn)}`
+                // Dynamic label based on actual axis roles
+                (() => {
+                  const isHorizontalChart = config.isHorizontal && 
+                    (config.chartType === 'stackedBar' || 
+                     config.chartType === 'stackedBar100' || 
+                     config.chartType === 'groupedBar');
+                  
+                  if (isHorizontalChart) {
+                    // In horizontal charts:
+                    // - X-axis (horizontal) = Values
+                    // - Y-axis (vertical) = Categories (original xAxisColumn)
+                    return `Y-Axis: ${denormalizeColumnName(config.xAxisColumn)} • X-Axis: Values`;
+                  } else {
+                    // In vertical charts:
+                    // - X-axis = Categories
+                    // - Y-axis = Values  
+                    return `X-Axis: ${denormalizeColumnName(config.xAxisColumn)}`;
+                  }
+                })()
               )}
-            </div>
+            </div>                       
 
           </div>
 

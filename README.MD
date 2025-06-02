@@ -1,6 +1,6 @@
 // File: /Users/lamba/Projects/js/charting_generic_enhanced/README.MD
 
-<span style="color: blue;">Puneet Lamba. June 01, 2025.</span>
+<span style="color: blue;">Puneet Lamba. June 02, 2025.</span>
 
 # TOC
 
@@ -21,6 +21,13 @@
 </ul>
 <li>1.7. <a href="#v1-1-2">v1.1.2</a></li>
 <li>1.8. <a href="#v1-1-3">v1.1.3</a></li>
+<li>1.9. <a href="#v1-1-4">v1.1.4</a></li>
+<ul>
+<li>1.9.1. <a href="#it-makes-perfect-sense-to-have-the-total-sorting-option-for-all-charts-here-s-why">It makes perfect sense to have the "Total" sorting option for all charts. Here's why:</a></li>
+<li>1.9.2. <a href="#why-total-sorting-is-useful-for-all-chart-types">Why "Total" sorting is useful for all chart types:</a></li>
+<li>1.9.3. <a href="#the-logic-works-universally">The logic works universally:</a></li>
+<li>1.9.4. <a href="#keep-it-simple">Keep it simple:</a></li>
+</ul>
 </ul>
 </ul>
 <!-- /TOC -->
@@ -85,3 +92,37 @@ The problem occurs when switching between **different charting libraries** (Rech
 
 ## v1.1.3
 - Now that horizontal orientation makes the category labels more readable, it would be nice if they weren't so constrained on real-estate. Addressed that via options to control chart height
+
+## v1.1.4
+- Sometimes what you need to fix is not the code, but the data. Prime example is that I did a random filter and noticed that contacts with an AP of 10 weren't showing up on the charts. Why? Because they had sparse columns and the charting libraries were excluding them outright. So I replaced all blanks with zeros (for numeric fields) and none (for category fields) and voila - I had whole new set of data never seen before!
+- Another data-related observation - numeric columns are not showing up a slider filters because they either have non-numeric values or negative values - another cleanup opportunity
+- Modified code to allow negative numeric values and still place them on a sliding filter (as opposed to a checkbox filter used for categories)
+- Added ability to sort by magnitude of the stacked bar (i.e. total of values, negative sentiment score hurts overall total)
+
+### It makes perfect sense to have the "Total" sorting option for all charts. Here's why:
+
+### Why "Total" sorting is useful for all chart types:
+
+1. **Stacked Bar Charts** - Sort by total bar length (the main use case we discussed)
+2. **Grouped Bar Charts** - Sort by sum of all grouped bars for each category
+3. **Line Charts** - Sort by total value across all selected metrics
+4. **Area Charts** - Sort by combined area size (total of all selected columns)
+5. **Scatter Plots** - Sort by sum of selected numeric columns (even if only showing 2)
+6. **Composed Charts** - Sort by total across all bars + lines
+
+### The logic works universally:
+
+The "total" calculation we implemented is:
+```typescript
+const totalA = config.selectedColumns.reduce((sum, col) => sum + ((a as any)[col] || 0), 0);
+const totalB = config.selectedColumns.reduce((sum, col) => sum + ((b as any)[col] || 0), 0);
+```
+
+This simply sums up all the selected columns for each data point, which makes sense regardless of how those columns are visually represented in the chart.
+
+### Keep it simple:
+
+Rather than trying to hide/show the "Total" option based on chart type, it's better UX to always show it. Users can choose whether it makes sense for their specific use case.
+
+So yes, definitely keep the "Total (High to Low)" option available for all chart types! The current implementation is perfect.
+

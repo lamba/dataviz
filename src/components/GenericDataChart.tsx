@@ -276,6 +276,52 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
    * COMPONENT FUNCTIONS - OTHER
   ******************************/
 
+  const parseCSVData = (csvText: string) => {
+    console.log('🔧 parseCSVData called with CSV text length:', csvText.length);
+    
+    const results = Papa.parse(csvText, {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      transform: (value, field) => {
+        // Clean Excel error values during parsing
+        const cleaned = cleanExcelErrors(value);
+        
+        // Special handling for sentiment_score column
+        if (field === 'sentiment_score' && typeof cleaned === 'string') {
+          const numValue = parseFloat(cleaned);
+          if (!isNaN(numValue)) {
+            console.log(`🔧 Converting sentiment_score "${cleaned}" to ${numValue}`);
+            return numValue;
+          }
+        }
+        
+        // General numeric conversion for string numbers (covers other numeric fields)
+        if (typeof cleaned === 'string' && cleaned.trim() !== '') {
+          const numValue = parseFloat(cleaned);
+          if (!isNaN(numValue)) {
+            // Only convert if it looks like a pure number (not mixed text)
+            const trimmed = cleaned.trim();
+            if (/^-?\d+\.?\d*$/.test(trimmed)) {
+              console.log(`🔧 Converting numeric string "${cleaned}" to ${numValue}`);
+              return numValue;
+            }
+          }
+        }
+        
+        return cleaned;
+      }
+    });
+    
+    console.log('🔧 parseCSVData results:', {
+      rowCount: results.data.length,
+      sampleRow: results.data[0],
+      errors: results.errors.length
+    });
+    
+    return results;
+  };
+
   const getOptimalChartHeight = (chartData: any[], isHorizontal: boolean, chartType: string) => {
     if (!isHorizontal) {
       return 500; // Keep default for vertical charts
@@ -323,7 +369,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     </div>
   );
 
-  const sortData = (data: any[], sortBy: string, xAxisColumn: string) => {
+  const sortData = (data: any[], sortBy: string, xAxisColumn: string, selectedColumns: string[]) => {
     return [...data].sort((a: any, b: any) => {
       const valA = a[sortBy];
       const valB = b[sortBy];
@@ -335,6 +381,11 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       
       if (sortBy === 'count') {
         return b.count - a.count; // Descending count
+      } else if (sortBy === 'total') {
+        // Calculate total of all selected columns for each row
+        const totalA = selectedColumns.reduce((sum, col) => sum + (a[col] || 0), 0);
+        const totalB = selectedColumns.reduce((sum, col) => sum + (b[col] || 0), 0);
+        return totalB - totalA; // Descending total
       } else if (sortBy === xAxisColumn) {
         // X-axis: ascending
         return typeof valA === 'string' 
@@ -664,11 +715,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         setLoading(true);
         
         // Process the new CSV data
-        const results = Papa.parse(csvData, {
-          header: true,
-          dynamicTyping: true,
-          skipEmptyLines: true
-        });
+        const results = parseCSVData(csvData);
         
         if (results.data.length > 0) {
           setRawData(results.data);
@@ -685,6 +732,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     };
     reader.readAsText(file);
   };
+
+  {/***********
+    USE EFFECTS
+  *************/}
 
   useEffect(() => {
     const fetchData = async () => {
@@ -742,16 +793,8 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         console.log('CSV data received, parsing...');
         
         // Parse CSV
-        const results = Papa.parse(csvText, {
-          header: true,
-          dynamicTyping: true,
-          skipEmptyLines: true,
-          transform: (value, field) => {
-            // Clean Excel error values during parsing
-            return cleanExcelErrors(value);
-          }
-        });
-        
+        const results = parseCSVData(csvText);
+
         if (results.data.length === 0) {
           throw new Error('No data found in CSV file.');
         }
@@ -844,6 +887,23 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
           .slice(0, 2)
           .map(col => normalizeColumnName(col));
       }
+
+      {/*****
+        DEBUG
+      *******/}
+      columnsArray.forEach(column => {
+        const columnValues = rawData.map(row => row[column])
+          .filter(val => val !== undefined && val !== null && val !== '');
+        
+        console.log(`🔍 Column '${column}' debug:`, {
+          sampleValues: columnValues.slice(0, 5),
+          valueTypes: columnValues.slice(0, 5).map(v => typeof v),
+          isCategorical: isColumnCategorical(rawData, column),
+          numericCount: columnValues.filter(val => typeof val === 'number' && !isNaN(val)).length,
+          totalCount: columnValues.length
+        });
+      });
+
     }
     
     console.log("processData - effectiveYColumns:", effectiveYColumns);
@@ -1183,7 +1243,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     console.log("🔥 Data before sort:", filteredData.slice(0, 3));
 
     // Sort data
-    filteredData = sortData(filteredData, config.sortBy, config.xAxisColumn);
+    filteredData = sortData(filteredData, config.sortBy, config.xAxisColumn, config.selectedColumns);
 
     console.log("🔥 Data after sort:", filteredData.slice(0, 3));
     console.log("🔥 SORTING DEBUG - END");
@@ -1260,7 +1320,7 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     });
     
     // RECALCULATE all calculated columns on the grouped data
-    const groupedDataWithCalculations = groupedData.map(group => {
+    const groupedDataWithCalculations: any[] = groupedData.map((group: any) => {
       const enhancedGroup = { ...group };
       
       // Apply each calculated column formula to the grouped data
@@ -1301,15 +1361,11 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         }
       });
       
-      // sort grouped data
-      const sortedGroupedData = sortData(groupedDataWithCalculations, config.sortBy, config.xAxisColumn);
-
-      return sortedGroupedData.slice(0, config.displayCount);
-
+      return enhancedGroup;
     });
-    
+
     console.log("🔧 prepareGroupedData - groups after ratio recalculation:");
-    groupedDataWithCalculations.forEach(group => {
+    groupedDataWithCalculations.forEach((group: any) => {
       const ratioColumns = Object.keys(calculatedColumns);
       const ratioValues = ratioColumns.reduce((acc, col) => {
         (acc as any)[col] = (group as any)[col] || 0;
@@ -1323,19 +1379,26 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         calculatedColumns: ratioValues
       });
     });
-    
+
     // Sort grouped data
     if (config.sortBy === 'count') {
       groupedDataWithCalculations.sort((a: any, b: any) => (b as any).count - (a as any).count);
+    } else if (config.sortBy === 'total') {
+      // Sort by total of selected columns
+      groupedDataWithCalculations.sort((a: any, b: any) => {
+        const totalA = config.selectedColumns.reduce((sum, col) => sum + ((a as any)[col] || 0), 0);
+        const totalB = config.selectedColumns.reduce((sum, col) => sum + ((b as any)[col] || 0), 0);
+        return totalB - totalA;
+      });
     } else if (config.selectedColumns.includes(config.sortBy)) {
       groupedDataWithCalculations.sort((a: any, b: any) => (b as any)[config.sortBy] - (a as any)[config.sortBy]);
     } else {
       groupedDataWithCalculations.sort((a: any, b: any) => String((a as any)[config.xAxisColumn]).localeCompare(String((b as any)[config.xAxisColumn])));
     }
-    
-    const limitedGroupedData = groupedDataWithCalculations.slice(0, config.displayCount);
+
+    const limitedGroupedData: any[] = groupedDataWithCalculations.slice(0, config.displayCount);
     console.log("🔧 prepareGroupedData - final result:", limitedGroupedData.length, "groups");
-    
+
     return limitedGroupedData;
   };
   
@@ -1543,6 +1606,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
+
+  {/*************
+    CUSTOM LEGEND
+  ***************/}
 
   const CustomLegend = () => {
     console.log("CustomLegend - config.selectedColumns:", config.selectedColumns);
@@ -1822,6 +1889,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     </div>
   );
 
+  {/******************
+    CREATE CHART BRUSH
+  ********************/}
+
   const createChartBrush = (chartData: any[]) => {
     // Only show brush if we have enough data points
     if (chartData.length <= 10) return null;
@@ -1839,6 +1910,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       />
     );
   };
+
+  {/*************
+    QUICK FORULAS
+  ***************/}
 
   const QuickFormulas = () => {
     return (
@@ -1944,6 +2019,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
     cursor: 'pointer',
     transition: 'background-color 0.2s'
   };
+
+  {/************************
+    RENDER HORIZONTAL CHARTS
+  **************************/}
 
   const renderHorizontalStackedBar100 = (chartData: any[]) => {
     // Calculate percentage data for 100% stacked bars
@@ -2187,6 +2266,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
       </div>
     );
   };
+
+  {/************
+    RENDER CHART
+  **************/}
 
   // Chart rendering function 
   const renderChart = () => {
@@ -3070,7 +3153,10 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
         </div>
       )}
 
-      {/* Chart Controls Panel */}
+      {/********************
+        CHART CONTROLS PANEL
+      **********************/}
+
       <div style={{ 
         display: 'flex', 
         flexDirection: 'column', 
@@ -3291,8 +3377,8 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
             </select>
           </div>
           
-          {/* Sort By */}
-          <div>
+          {/* Sort By - FIXED: Added missing div wrapper and label */}
+          <div style={{ minWidth: '200px' }}>
             <label htmlFor="sortBy" style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Sort By:</label>
             <select 
               id="sortBy" 
@@ -3303,6 +3389,9 @@ export const GenericDataChart: React.FC<GenericDataChartProps> = ({
               {config.groupByColumn && (
                 <option value="count">Count (High to Low)</option>
               )}
+              {/* ADD THIS NEW OPTION */}
+              <option value="total">Total (High to Low)</option>
+              
               {config.selectedColumns.map(column => (
                 <option key={column} value={column}>{denormalizeColumnName(column)} (High to Low)</option>
               ))}
